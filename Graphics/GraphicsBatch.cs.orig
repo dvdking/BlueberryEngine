@@ -1,0 +1,809 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using OpenTK.Graphics.OpenGL;
+using OpenTK;
+using System.Drawing;
+using OpenTK.Graphics;
+
+namespace Blueberry.Graphics
+{
+    public class GraphicsBatch
+    {
+        private static GraphicsBatch instance;
+        public static GraphicsBatch Instance
+        {
+            get
+            {
+                if (instance == null)
+                    instance = new GraphicsBatch();
+                return instance;
+            }
+        }
+
+        private BatchBuffer buffer;
+
+        List<BatchItem> _batchItemList;
+        Queue<BatchItem> _freeBatchItemQueue;
+
+        public GraphicsSortMode SortMode { get; set; }
+
+        private Rectangle tempRect = Rectangle.Empty;
+        private Vector2 texCoordTL = Vector2.Zero;
+        private Vector2 texCoordBR = Vector2.Zero;
+        private BatchItem temp = null;
+        private Matrix4 view;
+
+        public GraphicsBatch()
+        {
+            _batchItemList = new List<BatchItem>(256);
+            _freeBatchItemQueue = new Queue<BatchItem>(256);
+
+            buffer = new BatchBuffer(1024);
+
+            SortMode = GraphicsSortMode.Immediate;
+        }
+        public BatchItem CreateBatchItem()
+        {
+            BatchItem item;
+            if (_freeBatchItemQueue.Count > 0)
+                item = _freeBatchItemQueue.Dequeue();
+            else
+                item = new BatchItem();
+            _batchItemList.Add(item);
+            return item;
+        }
+
+        int CompareTexture(BatchItem a, BatchItem b)
+        {
+            return a.TextureID.CompareTo(b.TextureID);
+        }
+        int CompareDepth(BatchItem a, BatchItem b)
+        {
+            return a.Depth.CompareTo(b.Depth);
+        }
+        int CompareReverseDepth(BatchItem a, BatchItem b)
+        {
+            return b.Depth.CompareTo(a.Depth);
+        }
+
+        void FlushBuffer(BeginMode mode)
+        {
+            if (buffer.Count != 0)
+                GL.DrawArrays(mode, 0, buffer.Count);//GL.DrawElements(mode, (end - start) / 2 * 3, All.UnsignedShort, (IntPtr)((uint)_indexHandle.AddrOfPinnedObject() + (uint)(start / 2 * 3 * sizeof(short))));
+        }
+
+        public void Begin()
+        {
+            Begin(Matrix4.Identity);
+        }
+        public void Begin(Matrix4 transform)
+        {
+            view = transform;
+            buffer.Clear();
+        }
+        public void End()
+        {
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.PushMatrix();
+            GL.LoadMatrix(ref view);
+
+            GL.Color4(1.0f, 1.0f, 1.0f, 1.0f);
+
+            // nothing to do
+            if (_batchItemList.Count == 0)
+                return;
+
+            // sort the batch items
+            switch (SortMode)
+            {
+                case GraphicsSortMode.Deferred:
+                    _batchItemList.Reverse();
+                    break;
+                case GraphicsSortMode.Texture:
+                    _batchItemList.Sort(CompareTexture);
+                    break;
+                case GraphicsSortMode.FrontToBack:
+                    _batchItemList.Sort(CompareDepth);
+                    break;
+                case GraphicsSortMode.BackToFront:
+                    _batchItemList.Sort(CompareReverseDepth);
+                    break;
+            }
+
+            // make sure an old draw isn't still going on.
+            // cross fingers, commenting this out!!
+            //GL.Flush();
+            buffer.Bind();
+
+            // setup the vertexArray array
+            int texID = -1;
+            BeginMode mode = BeginMode.Points;
+            float lineWidth;
+            float pointSize;
+            GL.GetFloat(GetPName.LineWidth, out lineWidth);
+            GL.GetFloat(GetPName.PointSize, out pointSize);
+            foreach (BatchItem item in _batchItemList)
+            {
+                // if the texture changed, we need to flush and bind the new texture
+                if (item.TextureID != texID || item.Mode != mode || lineWidth != item.lineWidth || pointSize != item.pointSize || mode == BeginMode.TriangleFan || mode == BeginMode.Polygon)
+                {
+                    buffer.Update();
+                    FlushBuffer(mode);
+                    texID = item.TextureID;
+                    mode = item.Mode;
+                    lineWidth = item.lineWidth;
+                    pointSize = item.pointSize;
+                    if (item.TextureID != 0)
+                    {
+                        GL.Enable(EnableCap.Texture2D);
+                        GL.BindTexture(TextureTarget.Texture2D, texID);
+                    }
+                    else
+                        GL.Disable(EnableCap.Texture2D);
+                    GL.LineWidth(item.lineWidth);
+                    GL.PointSize(item.pointSize);
+                }
+                buffer.AddPoints(item.Vertices);
+                _freeBatchItemQueue.Enqueue(item);
+            }
+            buffer.Update();
+            // flush the remaining vertexArray data
+            FlushBuffer(mode);
+            GL.PopMatrix();
+
+            _batchItemList.Clear();
+        }
+        #region DrawTexture
+        public void DrawTexture(Texture2D texture,
+                                Vector2 position,
+                                Nullable<Rectangle> sourceRectangle,
+                                Color4 color,
+                                float rotation,
+                                Vector2 origin,
+                                Vector2 scale,
+                                bool flipHorizontally,
+                                bool flipVertically,
+                                float depth)
+        {
+            if (texture == null)
+            {
+                throw new ArgumentException("texture");
+            }
+
+            BatchItem item = CreateBatchItem();
+
+            item.Depth = depth;
+            item.TextureID = (int)texture.ID;
+            item.Mode = BeginMode.Quads;
+
+            if (sourceRectangle.HasValue)
+            {
+                tempRect = sourceRectangle.Value;
+            }
+            else
+            {
+                tempRect.X = 0;
+                tempRect.Y = 0;
+                tempRect.Width = texture.Size.Width;
+                tempRect.Height = texture.Size.Height;
+            }
+
+            texCoordTL = texture.GetTextureCoordinate(new Vector2(tempRect.X, tempRect.Y));
+            texCoordBR = texture.GetTextureCoordinate(new Vector2(tempRect.Right, tempRect.Bottom));
+
+            if (flipVertically)
+            {
+                float temp = texCoordBR.Y;
+                texCoordBR.Y = texCoordTL.Y;
+                texCoordTL.Y = temp;
+            }
+            if (flipHorizontally)
+            {
+                float temp = texCoordBR.X;
+                texCoordBR.X = texCoordTL.X;
+                texCoordTL.X = temp;
+            }
+            #region Add vertices
+            item.Vertices = new VertexPositionColorTexture[4];
+            float dx = -origin.X * scale.X;
+            float dy = -origin.Y * scale.Y;
+            float x = position.X;
+            float y = position.Y;
+            float w = tempRect.Width * scale.X;
+            float h = tempRect.Height * scale.Y;
+            float sin = (float)Math.Sin(rotation);
+            float cos = (float)Math.Cos(rotation);
+
+            item.Vertices[0].X = x + dx * cos - dy * sin;
+            item.Vertices[0].Y = y + dx * sin + dy * cos;
+            item.Vertices[0].R = color.R;
+            item.Vertices[0].G = color.G;
+            item.Vertices[0].B = color.B;
+            item.Vertices[0].A = color.A;
+            item.Vertices[0].U = texCoordTL.X;
+            item.Vertices[0].V = texCoordTL.Y;
+
+            item.Vertices[1].X = x + (dx + w) * cos - dy * sin;
+            item.Vertices[1].Y = y + (dx + w) * sin + dy * cos;
+            item.Vertices[1].R = color.R;
+            item.Vertices[1].G = color.G;
+            item.Vertices[1].B = color.B;
+            item.Vertices[1].A = color.A;
+            item.Vertices[1].U = texCoordBR.X;
+            item.Vertices[1].V = texCoordTL.Y;
+
+            item.Vertices[2].X = x + (dx + w) * cos - (dy + h) * sin;
+            item.Vertices[2].Y = y + (dx + w) * sin + (dy + h) * cos;
+            item.Vertices[2].R = color.R;
+            item.Vertices[2].G = color.G;
+            item.Vertices[2].B = color.B;
+            item.Vertices[2].A = color.A;
+            item.Vertices[2].U = texCoordBR.X;
+            item.Vertices[2].V = texCoordBR.Y;
+
+            item.Vertices[3].X = x + dx * cos - (dy + h) * sin;
+            item.Vertices[3].Y = y + dx * sin + (dy + h) * cos;
+            item.Vertices[3].R = color.R;
+            item.Vertices[3].G = color.G;
+            item.Vertices[3].B = color.B;
+            item.Vertices[3].A = color.A;
+            item.Vertices[3].U = texCoordTL.X;
+            item.Vertices[3].V = texCoordBR.Y;
+
+            #endregion
+        }
+
+        public void DrawTexture(Texture2D texture,
+                                Rectangle destinationRectangle,
+                                Nullable<Rectangle> sourceRectangle,
+                                Color4 color,
+                                float rotation,
+                                Vector2 origin,
+                                bool flipHorizontally,
+                                bool flipVertically,
+                                float depth)
+        {
+            if (texture == null)
+            {
+                throw new ArgumentException("texture");
+            }
+
+            BatchItem item = CreateBatchItem();
+
+            item.Depth = depth;
+            item.TextureID = (int)texture.ID;
+            item.Mode = BeginMode.Quads;
+
+            if (sourceRectangle.HasValue)
+            {
+                tempRect = sourceRectangle.Value;
+            }
+            else
+            {
+                tempRect.X = 0;
+                tempRect.Y = 0;
+                tempRect.Width = texture.Size.Width;
+                tempRect.Height = texture.Size.Height;
+            }
+
+            texCoordTL = texture.GetTextureCoordinate(new Vector2(tempRect.X, tempRect.Y));
+            texCoordBR = texture.GetTextureCoordinate(new Vector2(tempRect.Right, tempRect.Bottom));
+
+            if (flipVertically)
+            {
+                float temp = texCoordBR.Y;
+                texCoordBR.Y = texCoordTL.Y;
+                texCoordTL.Y = temp;
+            }
+            if (flipHorizontally)
+            {
+                float temp = texCoordBR.X;
+                texCoordBR.X = texCoordTL.X;
+                texCoordTL.X = temp;
+            }
+
+            #region Add vertices
+            item.Vertices = new VertexPositionColorTexture[4];
+            float x = destinationRectangle.X;
+            float y = destinationRectangle.Y;
+            float dx = -origin.X;
+            float dy = -origin.Y;
+            float w = destinationRectangle.Width;
+            float h = destinationRectangle.Height;
+            float sin = (float)Math.Sin(rotation);
+            float cos = (float)Math.Cos(rotation);
+
+            item.Vertices[0].X = x + dx * cos - dy * sin;
+            item.Vertices[0].Y = y + dx * sin + dy * cos;
+            item.Vertices[0].R = color.R;
+            item.Vertices[0].G = color.G;
+            item.Vertices[0].B = color.B;
+            item.Vertices[0].A = color.A;
+            item.Vertices[0].U = texCoordTL.X;
+            item.Vertices[0].V = texCoordTL.Y;
+
+            item.Vertices[1].X = x + (dx + w) * cos - dy * sin;
+            item.Vertices[1].Y = y + (dx + w) * sin + dy * cos;
+            item.Vertices[1].R = color.R;
+            item.Vertices[1].G = color.G;
+            item.Vertices[1].B = color.B;
+            item.Vertices[1].A = color.A;
+            item.Vertices[1].U = texCoordBR.X;
+            item.Vertices[1].V = texCoordTL.Y;
+
+            item.Vertices[2].X = x + (dx + w) * cos - (dy + h) * sin;
+            item.Vertices[2].Y = y + (dx + w) * sin + (dy + h) * cos;
+            item.Vertices[2].R = color.R;
+            item.Vertices[2].G = color.G;
+            item.Vertices[2].B = color.B;
+            item.Vertices[2].A = color.A;
+            item.Vertices[2].U = texCoordBR.X;
+            item.Vertices[2].V = texCoordBR.Y;
+
+            item.Vertices[3].X = x + dx * cos - (dy + h) * sin;
+            item.Vertices[3].Y = y + dx * sin + (dy + h) * cos;
+            item.Vertices[3].R = color.R;
+            item.Vertices[3].G = color.G;
+            item.Vertices[3].B = color.B;
+            item.Vertices[3].A = color.A;
+            item.Vertices[3].U = texCoordTL.X;
+            item.Vertices[3].V = texCoordBR.Y;
+
+            #endregion
+        }
+
+        public void DrawTexture(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color4 color)
+        {
+            DrawTexture(texture, position, sourceRectangle, color, 0.0f, Vector2.Zero, Vector2.One, false, false, 0);
+        }
+
+        public void DrawTexture(Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color4 color)
+        {
+            DrawTexture(texture, destinationRectangle, sourceRectangle, color, 0.0f, Vector2.Zero, false, false, 0);
+        }
+
+        public void DrawTexture(Texture2D texture, Vector2 position, Color4 color)
+        {
+            DrawTexture(texture, position, null, color, 0.0f, Vector2.Zero, Vector2.One, false, false, 0);
+        }
+
+        public void DrawTexture(Texture2D texture, Rectangle destinationRectangle, Color4 color, int depth)
+        {
+            DrawTexture(texture, destinationRectangle, null, color, 0.0f, Vector2.Zero, false, false, depth);
+        }
+
+        public void DrawTexture(Texture2D texture, Rectangle destinationRectangle, Color4 color)
+        {
+            DrawTexture(texture, destinationRectangle, null, color, 0.0f, Vector2.Zero, false, false, 0);
+        }
+
+        public void DrawAnimation(AnimationTexture2D texture, Rectangle destinationRectangle, Color4 color, bool loop, bool reverse, double deltaTime)
+        {
+            if (!loop)
+            {
+                if (!reverse)
+                {
+                    if (texture.PlayTime + deltaTime >= texture.EndTime)
+                        texture.PlayTime = texture.EndTime;
+                }
+                else
+                    if (texture.PlayTime - deltaTime <= 0)
+                        texture.PlayTime = 0;
+            }
+            else
+            {
+                if (!reverse)
+                    texture.PlayTime = (float)(texture.PlayTime + deltaTime) % texture.EndTime;
+                else
+                {
+                    if (texture.PlayTime - deltaTime <= 0)
+                        texture.PlayTime = texture.PlayTime + (float)(texture.PlayTime - deltaTime);
+                    else
+                        texture.PlayTime -= (float)deltaTime;
+                }
+            }
+            DrawTexture(texture, destinationRectangle, texture.FrameSource, color, 0.0f, Vector2.Zero, false, false, 0);
+        }
+        #endregion
+
+        #region DrawLine
+
+        public void DrawLine(Vector2 start, Vector2 end, Color4 color)
+        {
+            DrawLine(start, end, color, 1, 0);
+        }
+        public void DrawLine(Vector2 start, Vector2 end, Color4 color, float thickness, float depth)
+        {
+            BatchItem item = CreateBatchItem();
+            item.lineWidth = thickness;
+            item.Depth = depth;
+            item.TextureID = 0;
+            item.Mode = BeginMode.Lines;
+
+            #region Add vertices
+            item.Vertices = new VertexPositionColorTexture[2];
+
+            item.Vertices[0].X = start.X;
+            item.Vertices[0].Y = start.Y;
+            item.Vertices[0].R = color.R;
+            item.Vertices[0].G = color.G;
+            item.Vertices[0].B = color.B;
+            item.Vertices[0].A = color.A;
+            item.Vertices[0].U = 0;
+            item.Vertices[0].V = 0;
+
+            item.Vertices[1].X = end.X;
+            item.Vertices[1].Y = end.Y;
+            item.Vertices[1].R = color.R;
+            item.Vertices[1].G = color.G;
+            item.Vertices[1].B = color.B;
+            item.Vertices[1].A = color.A;
+            item.Vertices[1].U = 0;
+            item.Vertices[1].V = 0;
+
+            #endregion
+        }
+        public void DrawLine(Vector2 start, float angle, float length, Color4 color)
+        {
+            DrawLine(start, new Vector2(start.X + (float)(Math.Sin(angle + MathHelper.PiOver2) * length), start.Y + (float)(Math.Cos(angle + MathHelper.PiOver2) * length)), color);
+        }
+        public void DrawLine(Vector2 start, Vector2 direction, float length, Color4 color)
+        {
+            DrawLine(start, new Vector2(start.X + direction.X * length, start.Y + direction.Y * length), color);
+        }
+
+        #endregion
+
+        #region DrawPolygon
+
+        public void DrawPolygon(Vector2[] points, Color4 color, float depth)
+        {
+            DrawPolygon(points, Vector2.Zero, color, depth);
+        }
+        public void DrawPolygon(Vector2[] points, Vector2 position, Color4 color, float depth)
+        {
+            BatchItem item = CreateBatchItem();
+            item.Depth = depth;
+            item.TextureID = 0;
+            item.Mode = BeginMode.Polygon;
+
+            #region Add vertices
+            item.Vertices = new VertexPositionColorTexture[points.Length];
+
+            for (int i = 0; i < points.Length; i++)
+            {
+                item.Vertices[i].X = points[i].X + position.X;
+                item.Vertices[i].Y = points[i].Y + position.Y;
+                item.Vertices[i].R = color.R;
+                item.Vertices[i].G = color.G;
+                item.Vertices[i].B = color.B;
+                item.Vertices[i].A = color.A;
+                item.Vertices[i].U = 0;
+                item.Vertices[i].V = 0;
+            }
+
+            #endregion
+        }
+        public void DrawPolygon(IEnumerable<Vector2> points, Color4 color, float depth)
+        {
+            DrawPolygon(points, Vector2.Zero, color, depth);
+        }
+        public void DrawPolygon(IEnumerable<Vector2> points, Vector2 position, Color4 color, float depth)
+        {
+            BatchItem item = CreateBatchItem();
+            item.Depth = depth;
+            item.TextureID = 0;
+            item.Mode = BeginMode.Polygon;
+
+            #region Add vertices
+            item.Vertices = new VertexPositionColorTexture[points.Count()];
+
+            int i = 0;
+            foreach (Vector2 v in points)
+            {
+                item.Vertices[i].X = v.X + position.X;
+                item.Vertices[i].Y = v.Y + position.Y;
+                item.Vertices[i].R = color.R;
+                item.Vertices[i].G = color.G;
+                item.Vertices[i].B = color.B;
+                item.Vertices[i].A = color.A;
+                item.Vertices[i].U = 0;
+                item.Vertices[i].V = 0;
+                i++;
+            }
+
+            #endregion
+        }
+
+        public void DrawRegularPolygon(int vertices, float size, Vector2 position, float rotation, Color4 color, float depth)
+        {
+            BatchItem item = CreateBatchItem();
+            item.Depth = depth;
+            item.TextureID = 0;
+            item.Mode = BeginMode.TriangleFan;
+            if (vertices < 3 || vertices > 360)
+                throw new ArgumentException("Vertices must be in range from 3 to 360", "vertices");
+
+            item.Vertices = new VertexPositionColorTexture[vertices + 2];
+
+            item.Vertices[0].X = position.X;
+            item.Vertices[0].Y = position.Y;
+            item.Vertices[0].R = color.R;
+            item.Vertices[0].G = color.G;
+            item.Vertices[0].B = color.B;
+            item.Vertices[0].A = color.A;
+            item.Vertices[0].U = 0;
+            item.Vertices[0].V = 0;
+
+            item.Vertices[vertices + 1].X = item.Vertices[1].X = position.X + (float)(Math.Cos(rotation) * size / 2);
+            item.Vertices[vertices + 1].Y = item.Vertices[1].Y = position.Y + (float)(Math.Sin(rotation) * size / 2);
+            item.Vertices[vertices + 1].R = item.Vertices[1].R = color.R;
+            item.Vertices[vertices + 1].G = item.Vertices[1].G = color.G;
+            item.Vertices[vertices + 1].B = item.Vertices[1].B = color.B;
+            item.Vertices[vertices + 1].A = item.Vertices[1].A = color.A;
+            item.Vertices[vertices + 1].U = item.Vertices[1].U = 0;
+            item.Vertices[vertices + 1].V = item.Vertices[1].V = 0;
+
+            float degInRad;
+
+
+            for (int i = 2; i < vertices + 1; i++)
+            {
+                degInRad = MathHelper.DegreesToRadians((360 / vertices) * (i - 1)) + rotation;
+
+                //item.Vertices[i + 1].X = position.X + dx * cos - dy * sin + (float)(Math.Cos(degInRad) * size / 2);
+                //item.Vertices[i + 1].Y = position.Y + dx * sin + dy * cos + (float)(Math.Sin(degInRad) * size / 2);
+
+                item.Vertices[i].X = position.X + (float)(Math.Cos(degInRad) * size / 2);
+                item.Vertices[i].Y = position.Y + (float)(Math.Sin(degInRad) * size / 2);
+                item.Vertices[i].R = color.R;
+                item.Vertices[i].G = color.G;
+                item.Vertices[i].B = color.B;
+                item.Vertices[i].A = color.A;
+                item.Vertices[i].U = 0;
+                item.Vertices[i].V = 0;
+            }
+
+        }
+        #endregion
+
+        #region DrawRectangle
+        public void DrawRectangle(float x, float y, float width, float height, Color4 color, float rotation, float xOrigin, float yOrigin, float depth)
+        {
+            BatchItem item = CreateBatchItem();
+
+            item.Depth = depth;
+            item.TextureID = 0;
+            item.Mode = BeginMode.Quads;
+
+            #region Add vertices
+            item.Vertices = new VertexPositionColorTexture[4];
+            float sin = (float)Math.Sin(rotation);
+            float cos = (float)Math.Cos(rotation);
+
+            item.Vertices[0].X = x - xOrigin * cos + yOrigin * sin;
+            item.Vertices[0].Y = y - xOrigin * sin - yOrigin * cos;
+            item.Vertices[0].R = color.R;
+            item.Vertices[0].G = color.G;
+            item.Vertices[0].B = color.B;
+            item.Vertices[0].A = color.A;
+            item.Vertices[0].U = 0;
+            item.Vertices[0].V = 0;
+
+            item.Vertices[1].X = x + (width - xOrigin) * cos + yOrigin * sin;
+            item.Vertices[1].Y = y + (width - xOrigin) * sin - yOrigin * cos;
+            item.Vertices[1].R = color.R;
+            item.Vertices[1].G = color.G;
+            item.Vertices[1].B = color.B;
+            item.Vertices[1].A = color.A;
+            item.Vertices[1].U = 0;
+            item.Vertices[1].V = 0;
+
+            item.Vertices[2].X = x + (width - xOrigin) * cos - (height - yOrigin) * sin;
+            item.Vertices[2].Y = y + (width - xOrigin) * sin + (height - yOrigin) * cos;
+            item.Vertices[2].R = color.R;
+            item.Vertices[2].G = color.G;
+            item.Vertices[2].B = color.B;
+            item.Vertices[2].A = color.A;
+            item.Vertices[2].U = 0;
+            item.Vertices[2].V = 0;
+
+            item.Vertices[3].X = x - xOrigin * cos - (height - yOrigin) * sin;
+            item.Vertices[3].Y = y - xOrigin * sin + (height - yOrigin) * cos;
+            item.Vertices[3].R = color.R;
+            item.Vertices[3].G = color.G;
+            item.Vertices[3].B = color.B;
+            item.Vertices[3].A = color.A;
+            item.Vertices[3].U = 0;
+            item.Vertices[3].V = 0;
+
+            #endregion
+        }
+        public void DrawRectangle(RectangleF rectangle, Color4 color, float rotation, Vector2 origin, float depth)
+        {
+            DrawRectangle(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, color, rotation, origin.X, origin.Y, depth);
+        }
+        public void DrawRectangle(RectangleF rectangle, Color4 color)
+        {
+            DrawRectangle(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, color, 0.0f, 0.0f, 0.0f, 0.0f);
+        }
+        public void DrawRectangle(PointF position, SizeF size, Color4 color, float rotation, Vector2 origin, float depth)
+        {
+            DrawRectangle(position.X, position.Y, size.Width, size.Height, color, rotation, origin.X, origin.Y, depth);
+        }
+        public void DrawRectangle(PointF position, SizeF size, Color4 color)
+        {
+            DrawRectangle(position.X, position.Y, size.Width, size.Height, color, 0.0f, 0.0f, 0.0f, 0.0f);
+        }
+        public void DrawRectangle(Vector2 position, SizeF size, Color4 color, float rotation, Vector2 origin, float depth)
+        {
+            DrawRectangle(position.X, position.Y, size.Width, size.Height, color, rotation, origin.X, origin.Y, depth);
+        }
+        public void DrawRectangle(Vector2 position, SizeF size, Color4 color)
+        {
+            DrawRectangle(position.X, position.Y, size.Width, size.Height, color, 0.0f, 0.0f, 0.0f, 0.0f);
+        }
+
+        public void OutlineRectangle(float x, float y, float width, float height, Color4 color, float rotation, float xOrigin, float yOrigin, float depth)
+        {
+            BatchItem item = CreateBatchItem();
+
+            item.Depth = depth;
+            item.TextureID = 0;
+            item.Mode = BeginMode.LineLoop;
+            item.lineWidth = 1;
+            item.pointSize = 1;
+
+            #region Add vertices
+            item.Vertices = new VertexPositionColorTexture[4];
+            float sin = (float)Math.Sin(rotation);
+            float cos = (float)Math.Cos(rotation);
+
+            item.Vertices[0].X = x - xOrigin * cos + yOrigin * sin;
+            item.Vertices[0].Y = y - xOrigin * sin - yOrigin * cos;
+            item.Vertices[0].R = color.R;
+            item.Vertices[0].G = color.G;
+            item.Vertices[0].B = color.B;
+            item.Vertices[0].A = color.A;
+            item.Vertices[0].U = 0;
+            item.Vertices[0].V = 0;
+
+            item.Vertices[1].X = x + (width - xOrigin) * cos + yOrigin * sin;
+            item.Vertices[1].Y = y + (width - xOrigin) * sin - yOrigin * cos;
+            item.Vertices[1].R = color.R;
+            item.Vertices[1].G = color.G;
+            item.Vertices[1].B = color.B;
+            item.Vertices[1].A = color.A;
+            item.Vertices[1].U = 0;
+            item.Vertices[1].V = 0;
+
+            item.Vertices[2].X = x + (width - xOrigin) * cos - (height - yOrigin) * sin;
+            item.Vertices[2].Y = y + (width - xOrigin) * sin + (height - yOrigin) * cos;
+            item.Vertices[2].R = color.R;
+            item.Vertices[2].G = color.G;
+            item.Vertices[2].B = color.B;
+            item.Vertices[2].A = color.A;
+            item.Vertices[2].U = 0;
+            item.Vertices[2].V = 0;
+
+            item.Vertices[3].X = x - xOrigin * cos - (height - yOrigin) * sin;
+            item.Vertices[3].Y = y - xOrigin * sin + (height - yOrigin) * cos;
+            item.Vertices[3].R = color.R;
+            item.Vertices[3].G = color.G;
+            item.Vertices[3].B = color.B;
+            item.Vertices[3].A = color.A;
+            item.Vertices[3].U = 0;
+            item.Vertices[3].V = 0;
+
+            #endregion
+        }
+        public void OutlineRectangle(RectangleF rectangle, Color4 color, float rotation, Vector2 origin, float depth)
+        {
+            OutlineRectangle(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, color, rotation, origin.X, origin.Y, depth);
+        }
+        public void OutlineRectangle(RectangleF rectangle, Color4 color)
+        {
+            OutlineRectangle(rectangle, color, 0.0f, Vector2.Zero, 0);
+        }
+        public void OutlineRectangle(PointF position, SizeF size, Color4 color, float rotation, Vector2 origin, float depth)
+        {
+            OutlineRectangle(position.X, position.Y, size.Width, size.Height, color, rotation, origin.X, origin.Y, depth);
+        }
+        public void OutlineRectangle(PointF position, SizeF size, Color4 color)
+        {
+            OutlineRectangle(position, size, color, 0.0f, Vector2.Zero, 0);
+        }
+        #endregion
+
+        #region DrawCircle
+
+        public void DrawEllipse(float x, float y, float xRadius, float yRadius, Color4 centralColor, Color4 outerColor, int vertices, float depth)
+        {
+            BatchItem item = CreateBatchItem();
+
+            item.Depth = depth;
+            item.TextureID = 0;
+            item.Mode = BeginMode.TriangleFan;
+            if (vertices < 3 || vertices > 360)
+                throw new ArgumentException("Vertices must be in range from 3 to 360", "vertices");
+
+            item.Vertices = new VertexPositionColorTexture[vertices + 2];
+
+            item.Vertices[0].X = x;
+            item.Vertices[0].Y = y;
+            item.Vertices[0].R = centralColor.R;
+            item.Vertices[0].G = centralColor.G;
+            item.Vertices[0].B = centralColor.B;
+            item.Vertices[0].A = centralColor.A;
+            item.Vertices[0].U = 0;
+            item.Vertices[0].V = 0;
+
+            float degInRad;
+
+            for (int i = 0; i < vertices; i++)
+            {
+                degInRad = MathHelper.DegreesToRadians((360 / vertices) * i);
+                item.Vertices[i + 1].X = x + (float)(Math.Cos(degInRad) * xRadius);
+                item.Vertices[i + 1].Y = y + (float)(Math.Sin(degInRad) * yRadius);
+                item.Vertices[i + 1].R = outerColor.R;
+                item.Vertices[i + 1].G = outerColor.G;
+                item.Vertices[i + 1].B = outerColor.B;
+                item.Vertices[i + 1].A = outerColor.A;
+                item.Vertices[i + 1].U = 0;
+                item.Vertices[i + 1].V = 0;
+            }
+            item.Vertices[vertices + 1].X = x + xRadius;
+            item.Vertices[vertices + 1].Y = y;
+            item.Vertices[vertices + 1].R = outerColor.R;
+            item.Vertices[vertices + 1].G = outerColor.G;
+            item.Vertices[vertices + 1].B = outerColor.B;
+            item.Vertices[vertices + 1].A = outerColor.A;
+            item.Vertices[vertices + 1].U = 0;
+            item.Vertices[vertices + 1].V = 0;
+        }
+        public void DrawEllipse(Vector2 position, float xRadius, float yRadius, Color4 centralColor, Color4 outerColor, int vertices, float depth)
+        {
+            DrawEllipse(position.X, position.Y, xRadius, yRadius, centralColor, outerColor, vertices, depth);
+        }
+        public void DrawEllipse(PointF position, float xRadius, float yRadius, Color4 centralColor, Color4 outerColor, int vertices, float depth)
+        {
+            DrawEllipse(position.X, position.Y, xRadius, yRadius, centralColor, outerColor, vertices, depth);
+        }
+        public void DrawEllipse(Vector2 position, float xRadius, float yRadius, Color4 color, int vertices, float depth)
+        {
+            DrawEllipse(position.X, position.Y, xRadius, yRadius, color, color, vertices, depth);
+        }
+        public void DrawEllipse(PointF position, float xRadius, float yRadius, Color4 color, int vertices, float depth)
+        {
+            DrawEllipse(position.X, position.Y, xRadius, yRadius, color, color, vertices, depth);
+        }
+        public void DrawCircle(float x, float y, float radius, Color4 centralColor, Color4 outerColor, int vertices, float depth)
+        {
+            DrawEllipse(x, y, radius, radius, centralColor, outerColor, vertices, depth);
+        }
+        public void DrawCircle(float x, float y, float radius, Color4 color, int vertices, float depth)
+        {
+            DrawEllipse(x, y, radius, radius, color, color, vertices, depth);
+        }
+        public void DrawCircle(Vector2 position, float radius, Color4 centralColor, Color4 outerColor, int vertices, float depth)
+        {
+            DrawEllipse(position.X, position.Y, radius, radius, centralColor, outerColor, vertices, depth);
+        }
+        public void DrawCircle(PointF position, float radius, Color4 centralColor, Color4 outerColor, int vertices, float depth)
+        {
+            DrawEllipse(position.X, position.Y, radius, radius, centralColor, outerColor, vertices, depth);
+        }
+        public void DrawCircle(Vector2 position, float radius, Color4 color, int vertices, float depth)
+        {
+            DrawEllipse(position.X, position.Y, radius, radius, color, color, vertices, depth);
+        }
+        public void DrawCircle(PointF position, float radius, Color4 color, int vertices, float depth)
+        {
+            DrawEllipse(position.X, position.Y, radius, radius, color, color, vertices, depth);
+        }
+
+        #endregion
+    }
+}

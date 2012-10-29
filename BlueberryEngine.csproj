@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{0F82D590-BC4F-4D17-B8C5-6E18EA86C126}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Blueberry</RootNamespace>
+    <AssemblyName>BlueberryEngine</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="OpenTK, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Dependencies\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Animation.cs" />
+    <Compile Include="AnimationManager.cs" />
+    <Compile Include="Audio\AudioChannel.cs" />
+    <Compile Include="Audio\AudioClip.cs" />
+    <Compile Include="Audio\AudioManager.cs" />
+    <Compile Include="Diagnostics\DebugGraph.cs" />
+    <Compile Include="Diagnostics\DiagnosticsCenter.cs" />
+    <Compile Include="Diagnostics\IDiagnosable.cs" />
+    <Compile Include="FloatAnimation.cs" />
+    <Compile Include="IAnimation.cs" />
+    <Compile Include="IntAnimation.cs" />
+    <Compile Include="ArrayTimSort.cs" />
+    <Compile Include="Camera.cs" />
+    <Compile Include="ColourRange.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="FrameAnimation.cs" />
+    <Compile Include="Geometry\Circle.cs" />
+    <Compile Include="Geometry\ConvexPolygon.cs" />
+    <Compile Include="Geometry\Line.cs" />
+    <Compile Include="Geometry\Segment.cs" />
+    <Compile Include="Graphics\Fonts\Builder.cs" />
+    <Compile Include="Graphics\Fonts\Configuration\FontBuilderConfiguration.cs" />
+    <Compile Include="Graphics\Fonts\Configuration\FontKerningConfiguration.cs" />
+    <Compile Include="Graphics\Fonts\KerningCalculator.cs" />
+    <Compile Include="Graphics\Fonts\HelperBitmap.cs" />
+    <Compile Include="Graphics\Fonts\BitmapFont.cs" />
+    <Compile Include="Graphics\Fonts\FontData.cs" />
+    <Compile Include="Graphics\Fonts\FontGlyph.cs" />
+    <Compile Include="Graphics\Fonts\FontRenderOptions.cs" />
+    <Compile Include="Graphics\Fonts\TextNodeList.cs" />
+    <Compile Include="Graphics\Fonts\TexturePage.cs" />
+    <Compile Include="Graphics\Shader.cs" />
+    <Compile Include="Graphics\VertexBuffer.cs" />
+    <Compile Include="Graphics\SpriteBatch.cs" />
+    <Compile Include="Graphics\GraphicsDevice.cs" />
+    <Compile Include="Graphics\Texture.cs" />
+    <Compile Include="Light.cs" />
+    <Compile Include="LightingSystem.cs" />
+    <Compile Include="ListTimSort.cs" />
+    <Compile Include="MathUtils.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QuadTree.cs" />
+    <Compile Include="QuadTreeNode.cs" />
+    <Compile Include="RandomTool.cs" />
+    <Compile Include="Range.cs" />
+    <Compile Include="SceneManagement\Actor.cs" />
+    <Compile Include="Atlas.cs" />
+    <Compile Include="SceneManagement\IActor.cs" />
+    <Compile Include="SceneManagement\IBoundedActor.cs" />
+    <Compile Include="SceneManagement\Scene.cs" />
+    <Compile Include="SceneManagement\Sprite.cs" />
+    <Compile Include="Tile.cs" />
+    <Compile Include="TimSortExtender.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\NVorbis\NVorbis.csproj">
+      <Project>{a372e591-dfef-49c4-9c82-98c4361efccd}</Project>
+      <Name>NVorbis</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
