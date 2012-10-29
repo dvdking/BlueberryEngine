@@ -60,6 +60,10 @@
     <Compile Include="Diagnostics\DiagnosticsCenter.cs" />
     <Compile Include="Diagnostics\IDiagnosable.cs" />
     <Compile Include="FloatAnimation.cs" />
+    <Compile Include="Geometry\Circle.cs" />
+    <Compile Include="Geometry\ConvexPolygon.cs" />
+    <Compile Include="Geometry\Line.cs" />
+    <Compile Include="Geometry\Segment.cs" />
     <Compile Include="IAnimation.cs" />
     <Compile Include="Input\BatteryInformation.cs" />
     <Compile Include="Input\Bool.cs" />
@@ -83,10 +87,6 @@
     <Compile Include="ColourRange.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FrameAnimation.cs" />
-    <Compile Include="Graphics\Geometry\Circle.cs" />
-    <Compile Include="Graphics\Geometry\ConvexPolygon.cs" />
-    <Compile Include="Graphics\Geometry\Line.cs" />
-    <Compile Include="Graphics\Geometry\Segment.cs" />
     <Compile Include="Graphics\Fonts\Builder.cs" />
     <Compile Include="Graphics\Fonts\Configuration\FontBuilderConfiguration.cs" />
     <Compile Include="Graphics\Fonts\Configuration\FontKerningConfiguration.cs" />
@@ -121,9 +121,8 @@
     <Compile Include="Tile.cs" />
     <Compile Include="TimSortExtender.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\NVorbis\NVorbis.csproj">
+    <ProjectReference Include="nvorbis\NVorbis\NVorbis.csproj">
       <Project>{a372e591-dfef-49c4-9c82-98c4361efccd}</Project>
       <Name>NVorbis</Name>
     </ProjectReference>

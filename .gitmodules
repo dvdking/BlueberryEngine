@@ -1,0 +1,3 @@
+[submodule "nvorbis"]
+	path = nvorbis
+	url = https://git01.codeplex.com/nvorbis/NVorbis
