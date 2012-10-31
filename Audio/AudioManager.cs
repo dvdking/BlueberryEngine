@@ -174,7 +174,7 @@ namespace Blueberry.Audio
                 Update();
                 // TODO: Is 1ms long enough to still have good performance outside
                 // of the audio?
-                Thread.Sleep(1);
+                Thread.Sleep(10);
             }
         }
 

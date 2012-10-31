@@ -203,19 +203,16 @@ namespace Blueberry.Graphics
             {
                 Array.Resize<float>(ref vertexData, vertexData.Length * 2);
             }
-            if (sum < vertexData.Length / 2 && vertexData.Length > 512)
-                Array.Resize<float>(ref vertexData, vertexData.Length / 2);
         }
 
         private void CheckForOverflowIndexBuffer(int add = 1)
         {
             int sum = ioffset + add;
-            int length = indexData.Length;
 
-            if (sum > length)
-                Array.Resize<int>(ref indexData, length * 2);
-            else if (sum < length / 2 && length > 128)
-                Array.Resize<int>(ref indexData, length / 2);
+            while (sum > indexData.Length)
+            {
+                Array.Resize<int>(ref indexData, indexData.Length * 2);
+            }
         }
     }
 }
