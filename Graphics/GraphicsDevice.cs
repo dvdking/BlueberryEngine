@@ -36,8 +36,8 @@ namespace Blueberry.Graphics
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
             /* Create the offscreen framebuffer*/
-            //GL.GenFramebuffers(1, out framebuffer);
-            //GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            GL.GenFramebuffers(1, out framebuffer);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
 
         public void SetRenderTarget(Texture target)

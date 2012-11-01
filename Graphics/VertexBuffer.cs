@@ -134,22 +134,22 @@ namespace Blueberry.Graphics
         public void UpdateBuffer()
         {
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexDataBufferObject);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertexData.Length * sizeof(float)), vertexData, UsageMode);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(voffset * sizeof(float)), vertexData, UsageMode);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, IndexDataBufferObject);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(indexData.Length * sizeof(int)), indexData, UsageMode);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(ioffset * sizeof(int)), indexData, UsageMode);
         }
 
         public void UpdateVertexBuffer()
         {
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexDataBufferObject);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertexData.Length * sizeof(float)), vertexData, UsageMode);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(voffset * sizeof(float)), vertexData, UsageMode);
         }
 
         public void UpdateIndexBuffer()
         {
             GL.BindBuffer(BufferTarget.ArrayBuffer, IndexDataBufferObject);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(indexData.Length * sizeof(int)), indexData, UsageMode);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(ioffset * sizeof(int)), indexData, UsageMode);
         }
 
         public void Attach(Shader shader)
