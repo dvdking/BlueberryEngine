@@ -108,7 +108,7 @@ namespace Blueberry.Diagnostics
             if (memoryCounter >= 0.5f)
             {
                 memoryCounter = 0;
-                memory = GC.GetTotalMemory(true);
+                memory = GC.GetTotalMemory(false);
                 memoryGraph.AddValue(memory);
 
                 var usedHeap = (double)memory;
