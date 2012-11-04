@@ -78,26 +78,38 @@ namespace Blueberry.Audio
         /// </summary>
         public void PlayDynamic()
         {
-            lock (AudioManager.Instance)
+            lock (AudioManager.Instance.workWithListMutex)
             {
                 AudioManager.Instance.PlayClip(this);
             }
         }
         public void Play()
         {
-            StaticChanel.Play();
+            lock (AudioManager.Instance.workWithListMutex)
+            {
+                StaticChanel.Play();
+            }
         }
         public void Pause()
         {
-            StaticChanel.Pause();
+            lock (AudioManager.Instance.workWithListMutex)
+            {
+                StaticChanel.Pause();
+            }
         }
         public void Stop()
         {
-            StaticChanel.Stop();
+            lock (AudioManager.Instance.workWithListMutex)
+            {
+                StaticChanel.Stop();
+            }
         }
         public void Resume()
         {
-            StaticChanel.Resume();
+            lock (AudioManager.Instance.workWithListMutex)
+            {
+                StaticChanel.Resume();
+            }
         }
 
     }

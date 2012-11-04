@@ -27,7 +27,7 @@ namespace Blueberry.Audio
 
         private static AudioManager instance = null;
 
-        private object workWithListMutex = new object();
+        internal object workWithListMutex = new object();
 
         /// <summary>
         /// The sole instance of the audio manager.

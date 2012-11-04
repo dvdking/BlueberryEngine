@@ -179,9 +179,12 @@ namespace Blueberry.Audio
 
         internal void OpenReader()
         {
-            lastStreamPosition = 0;
-            CurrentClip.underlyingStream.Seek(lastStreamPosition, SeekOrigin.Begin);
-            Reader = new VorbisReader(CurrentClip.underlyingStream, false);
+            lock (readerMutex)
+            {
+                lastStreamPosition = 0;
+                CurrentClip.underlyingStream.Seek(lastStreamPosition, SeekOrigin.Begin);
+                Reader = new VorbisReader(CurrentClip.underlyingStream, false);
+            }
         }
 
         internal void Prepare()
@@ -189,10 +192,11 @@ namespace Blueberry.Audio
             ALSourceState state = AL.GetSourceState(Source);
             if (state == ALSourceState.Playing || state == ALSourceState.Paused)
                 Stop();
-            
-            lastStreamPosition = 0;
-            Reader.DecodedTime = TimeSpan.Zero;
-            
+            lock (readerMutex)
+            {
+                lastStreamPosition = 0;
+                Reader.DecodedTime = TimeSpan.Zero;
+            }
             eof = false;
 
             DequeuUsedBuffers();
@@ -248,9 +252,12 @@ namespace Blueberry.Audio
             var state = AL.GetSourceState(Source);
             if (state == ALSourceState.Playing || state == ALSourceState.Paused)
             {
-                AL.SourceStop(Source);
-                lastStreamPosition = 0;
-                Reader.DecodedTime = TimeSpan.Zero;
+                lock (readerMutex)
+                {
+                    AL.SourceStop(Source);
+                    lastStreamPosition = 0;
+                    Reader.DecodedTime = TimeSpan.Zero;
+                }
             }
         }
 
@@ -258,8 +265,11 @@ namespace Blueberry.Audio
         {
             if (Reader != null)
             {
-                Reader.Dispose();
-                Reader = null;
+                lock (readerMutex)
+                {
+                    Reader.Dispose();
+                    Reader = null;
+                }
             }
         }
 
