@@ -61,6 +61,7 @@ namespace Blueberry.Graphics
             _freeBatchItemQueue = new Queue<BatchItem>(256);
 
             vbuffer = new VertexBuffer(1024);
+            Diagnostics.DiagnosticsCenter.Instance.Add(vbuffer);
             defaultShader = new Shader();
             
             if (Shader.Version < 3.3f)

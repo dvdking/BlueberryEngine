@@ -7,14 +7,11 @@ namespace Blueberry
 {
     public interface IAnimation : IDisposable
     {
-
-        void Animate(float dt);
+        void Animate(double dt);
         void Play(bool restart = false);
         void Pause();
         void Stop();
         void Resume();
-        bool Playing { get; }
-        bool Stoped { get; }
-        bool Paused { get; }
+        PlaybackState State { get; }
     }
 }

@@ -42,7 +42,7 @@ namespace Blueberry.Audio
                 return instance;
             }
 
-            set
+            private set
             {
                 instance = value;
             }
@@ -61,6 +61,7 @@ namespace Blueberry.Audio
         /// </summary>
         public AudioManager()
         {
+            if (instance != null) throw new Exception("Can't create more than one instances of AudioManager");
             Init(16, 4 * 8, 4096, true);
         }
 
@@ -74,6 +75,7 @@ namespace Blueberry.Audio
         ///                            Otherwise, a thread will not be launched and manual calls to Update() will be required.</param>
         public AudioManager(int channels, int buffersPerChannel, int bytesPerBuffer, bool launchThread)
         {
+            if (instance != null) throw new Exception("Can't create more than one instances of AudioManager");
             Init(channels, buffersPerChannel, bytesPerBuffer, launchThread);
         }
 

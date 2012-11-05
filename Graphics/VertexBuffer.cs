@@ -5,10 +5,11 @@ using System.Linq;
 using System.Text;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Blueberry.Diagnostics;
 
 namespace Blueberry.Graphics
 {
-    public class VertexBuffer
+    public class VertexBuffer:IDiagnosable
     {
         struct VertexDeclaration
         {
@@ -69,7 +70,7 @@ namespace Blueberry.Graphics
             GL.GenBuffers(1, out tmp);
             IndexDataBufferObject = tmp;
 
-            UsageMode = BufferUsageHint.StaticDraw;
+            UsageMode = BufferUsageHint.DynamicDraw;
 
             vertexData = new float[capacity];
             indexData = new int[capacity * 3];
@@ -213,6 +214,22 @@ namespace Blueberry.Graphics
             {
                 Array.Resize<int>(ref indexData, indexData.Length * 2);
             }
+        }
+
+        public void DebugAction()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string DebugInfo()
+        {
+            return "Vertex buffer: " + vertexData.Length +";"+
+                    "Index buffer: " + indexData.Length + ";";
+        }
+
+        public string DebugName
+        {
+            get { return "Vertex buffer"; }
         }
     }
 }

@@ -13,8 +13,9 @@ namespace Blueberry
         public Thread UpdateThread { get; private set; }
 
         public bool RunUpdates { get; set; }
-        private List<IAnimation> animations;
-        public List<IAnimation> Animations { get { return animations; } }
+        internal List<IAnimation> animations;
+
+        internal object updateMutex = new object();
 
         public static AnimationManager Manager
         {
@@ -25,7 +26,7 @@ namespace Blueberry
 
                 return instance;
             }
-            set
+            private set
             {
                 instance = value;
             }
@@ -33,6 +34,7 @@ namespace Blueberry
 
         public AnimationManager(bool launchUpdateThread = true)
         {
+            if (instance != null) throw new Exception("Can't create more than one instances of AnimationManager");
             Init(launchUpdateThread);
         }
 
@@ -59,11 +61,11 @@ namespace Blueberry
 
         public void Update(double dt)
         {
-            lock (this)
+            lock (updateMutex)
             {
                 for (int i = 0; i < animations.Count; i++)
                 {
-                    animations[i].Animate((float)dt);
+                    animations[i].Animate(dt);
                 }
             }
         }
@@ -76,7 +78,7 @@ namespace Blueberry
                 time = stopwatch.Elapsed.TotalSeconds;
                 stopwatch.Restart();
                 Update(time);
-                Thread.Sleep(1);
+                Thread.Sleep(5);
             }
         }
 

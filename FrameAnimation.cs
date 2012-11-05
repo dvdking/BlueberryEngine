@@ -17,7 +17,7 @@ namespace Blueberry
         public readonly int FrameWidth;
         public readonly int FrameHeight;
 
-        public FrameAnimation(bool horisontal, int frameWidth, int frameHeight, int startFrame, int endFrame, float fps):base(startFrame, endFrame,1/fps, false)
+        public FrameAnimation(bool horisontal, int frameWidth, int frameHeight, int startFrame, int endFrame, float fps):base(startFrame, endFrame,1/fps, LoopMode.None)
         {
             this.horisontal = horisontal;
             FrameWidth = frameWidth;
@@ -26,7 +26,7 @@ namespace Blueberry
             current.Height = FrameHeight;
 
         }
-        public override void Animate(float dt)
+        public override void Animate(double dt)
         {
             base.Animate(dt);
             if (horisontal) current.X = Value * FrameWidth; else current.Y = Value * FrameHeight;

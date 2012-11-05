@@ -5,90 +5,106 @@ using System.Text;
 
 namespace Blueberry
 {
+    public enum LoopMode : byte
+    {
+        None = 0,
+        Loop = 1,
+        LoopWithReversing = 2
+    }
+    public enum PlaybackState
+    {
+        Play,
+        Pause,
+        Stop
+    }
     public abstract class Animation<T> : IAnimation
     {
         public virtual T From { get; protected set; }
         public virtual T To { get; protected set; }
         public virtual T Value { get; protected set; }
-        public bool Loop { get; set; }
-        public bool Playing { get; private set; }
-        public bool Paused { get; private set; }
-        public bool Stoped { get; private set; }
+        public LoopMode Loop { get; set; }
+        public PlaybackState State { get; private set; }
         public virtual double Period { get; protected set; }
+
+        protected double timer; // main timer
 
         public Animation()
         {
-            Stoped = true;
-            //AnimationManager.Manager.Animations.Add(this);
+            State = PlaybackState.Stop;
         }
 
-        public virtual void Animate(float dt)
+        public virtual void Animate(double dt)
         {
            
         }
 
         public virtual void Play(bool restart = false)
         {
-            if (restart)
+            lock (AnimationManager.Manager.updateMutex)
             {
-                Value = From;
-                Playing = true;
-                Paused = false;
-                Stoped = false;
-                AnimationManager.Manager.Animations.Add(this);
-            }
-            else
-            {
-                if (Paused)
-                    Resume();
-                else if (Stoped)
+                if (restart)
                 {
                     Value = From;
-                    Playing = true;
-                    Paused = false;
-                    Stoped = false;
-                    AnimationManager.Manager.Animations.Add(this);
+                    State = PlaybackState.Play;
+                    AnimationManager.Manager.animations.Add(this);
+                }
+                else
+                {
+                    if (State == PlaybackState.Pause)
+                        Resume();
+                    else if (State == PlaybackState.Stop)
+                    {
+                        Value = From;
+                        State = PlaybackState.Play;
+                        AnimationManager.Manager.animations.Add(this);
+                    }
                 }
             }
         }
 
         public virtual void Pause()
         {
-            if (Playing)
+            lock (AnimationManager.Manager.updateMutex)
             {
-                Playing = false;
-                Paused = true;
-                Stoped = false;
-                AnimationManager.Manager.Animations.Remove(this);
+                if (State == PlaybackState.Play)
+                {
+                    State = PlaybackState.Pause;
+                    AnimationManager.Manager.animations.Remove(this);
+                }
             }
         }
 
         public virtual void Stop()
         {
-            if (!Stoped)
+            lock (AnimationManager.Manager.updateMutex)
             {
-                Stoped = true;
-                Playing = false;
-                Paused = false;
-                AnimationManager.Manager.Animations.Remove(this);
+                if (State != PlaybackState.Stop)
+                {
+                    State = PlaybackState.Stop;
+                    AnimationManager.Manager.animations.Remove(this);
+                }
             }
         }
 
         public virtual void Resume()
         {
-            if (Paused)
+            lock (AnimationManager.Manager.updateMutex)
             {
-                Paused = false;
-                Stoped = false;
-                Playing = true;
-
-                AnimationManager.Manager.Animations.Add(this);
+                if (State == PlaybackState.Pause)
+                {
+                    State = PlaybackState.Play;
+                    AnimationManager.Manager.animations.Add(this);
+                }
             }
 
         }
 
         public virtual void Dispose()
         {
+            lock (AnimationManager.Manager.updateMutex)
+            {
+                AnimationManager.Manager.animations.Remove(this);
+            }
         }
     }
 }

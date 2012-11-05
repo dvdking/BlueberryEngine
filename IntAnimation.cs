@@ -7,51 +7,69 @@ namespace Blueberry
 {
     public class IntAnimation : Animation<int>
     {
-        protected double temp; // время, прошедшее с последнего
-
-        public IntAnimation(int from, int to, double period, bool loop)
+        int left, right; // upper and lower bounds
+        int sign; // shows animation direction (incermental or decremental)
+        /// <summary>
+        /// Constructor of IntAnimation
+        /// </summary>
+        /// <param name="from">Start value</param>
+        /// <param name="to">End value</param>
+        /// <param name="period">Duration time</param>
+        /// <param name="loopMode">Specify loop behaviour</param>
+        public IntAnimation(int from, int to, double period, LoopMode loopMode)
         {
             From = from;
             To = to;
+            left = Math.Min(from, to);
+            right = Math.Max(from, to);
+            if (From < To) sign = 1;
+            else sign = -1;
+
             Period = period;
-            Loop = loop;
+            Loop = loopMode;
             Value = From;
         }
         public IntAnimation()
         {
             From = 0;
-            To = 0;
+            To = 10;
             Period = 0;
-            Loop = false;
+            Loop = LoopMode.None;
             Value = 0;
         }
         public void Reset()
         {
             Value = From;
-            temp = 0;
+            timer = 0;
+            if (From < To) sign = 1;
+            else sign = -1;
         }
 
         public static explicit operator int(IntAnimation anim)
         {
             return anim.Value;
         }
-
-        public override void Animate(float dtime)
+        // TODO: need to fix it all
+        public override void Animate(double dtime)
         {
-            temp += dtime;
-            int v = (int)(temp / Period);
-            if (v > 0)
+            timer += dtime;
+            int val = (int)(timer / Period);
+            if (val > 0)
             {
-                if (From < To)
-                    Value += v;
-                else
-                    Value -= v;
-
-                temp = temp % Period;
+                Value += val * sign;
+                timer = timer % Period;
             }
-            if ((From < To && Value > To) || (From > To && Value < To))
+            if (Value > right || Value < left)
             {
-                if (Loop) Value = From;
+                if (Loop == LoopMode.Loop) Value = From; // this is not right, see FloatAnimation
+                else if (Loop == LoopMode.LoopWithReversing)
+                {
+                    if (sign > 0)
+                        Value = right;
+                    else
+                        Value = left;
+                    sign = -sign;
+                }
                 else { Value = To; Stop(); }
             }
         }
@@ -59,12 +77,12 @@ namespace Blueberry
         {
             base.Play(restart);
             if (restart)
-                temp = 0;
+                timer = 0;
         }
         public override void Stop()
         {
             base.Stop();
-            temp = 0;
+            timer = 0;
         }
     }
 }
