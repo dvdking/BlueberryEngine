@@ -63,9 +63,11 @@ namespace Blueberry.Input
 
         public float LeftTrigger { get; private set; }
 
+        private bool _conected;
+
         public bool Connected
         {
-            get { return Controller.IsConnected; }
+            get { return _conected; }
         }
 
         private static float Saturate(float value)
@@ -99,8 +101,9 @@ namespace Blueberry.Input
             ThumbstickState old_l = LeftStick;
             ThumbstickState old_r = RightStick;
 
+            _conected = Controller.IsConnected;
             // If not connected, nothing to update
-            if (!Connected) return;
+            if (!_conected) return;
 
             if (_vibrationTime > _elapsed)
             {
