@@ -116,6 +116,7 @@
     <Compile Include="SceneManagement\Sprite.cs" />
     <Compile Include="Tile.cs" />
     <Compile Include="TimSortExtender.cs" />
+    <Compile Include="Audio\AudioRemoteControll.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="nvorbis\NVorbis\NVorbis.csproj">

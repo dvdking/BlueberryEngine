@@ -123,7 +123,7 @@ namespace Blueberry.Audio
         /// Plays the audio clip on the first free channel.
         /// </summary>
         /// <param name="clip">The audio clip to play.</param>
-        public void PlayClip(AudioClip clip)
+        public AudioRemoteControll PlayClip(AudioClip clip)
         {
             // TODO: If all channels are busy, the clip will be ignored.  There must be a more elegant way.
             lock (workWithListMutex)
@@ -135,9 +135,10 @@ namespace Blueberry.Audio
                     {
                         channel.Init(clip);
                         channel.Play();
-                        return;
+                        return channel.CreateRemote();
                     }
                 }
+                return null; // All channels are busy
             }
         }
 

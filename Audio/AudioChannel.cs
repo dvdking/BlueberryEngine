@@ -118,6 +118,7 @@ namespace Blueberry.Audio
                 AudioManager.Instance.Efx.Filter(alFilterId, EfxFilterf.LowpassGain, 1);
                 LowPassHFGain = 1;
             }
+            IsLooped = false;
         }
 
         /// <summary>Deconstructs the channel, freeing its hardware resources.</summary>
@@ -138,7 +139,14 @@ namespace Blueberry.Audio
             alBufferIds = null;
             CloseReader();
         }
-
+        private AudioRemoteControll currentRemote;
+        internal AudioRemoteControll CreateRemote()
+        {
+            if(currentRemote != null)
+                currentRemote.SoftBreak();
+            currentRemote = new AudioRemoteControll(this);
+            return currentRemote;
+        }
         public void Init(AudioClip clip)
         {
             ALSourceState state = AL.GetSourceState(Source);
@@ -155,6 +163,9 @@ namespace Blueberry.Audio
                 CurrentFormat = Reader.Channels == 1 ? ALFormat.Mono16 : ALFormat.Stereo16;
                 CurrentRate = Reader.SampleRate;
             }
+            Volume = 1;
+            LowPassHFGain = 1;
+            IsLooped = false;
         }
 
         private object updateMutex = new object();
@@ -308,6 +319,7 @@ namespace Blueberry.Audio
                     Reader.DecodedTime = TimeSpan.Zero;
                 }
             }
+            if(currentRemote != null) currentRemote.SoftBreak();
         }
 
         internal void CloseReader()

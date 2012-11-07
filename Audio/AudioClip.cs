@@ -76,12 +76,9 @@ namespace Blueberry.Audio
         /// <summary>
         /// Plays the audio clip.
         /// </summary>
-        public void PlayDynamic()
+        public AudioRemoteControll PlayDynamic()
         {
-            lock (AudioManager.Instance.workWithListMutex)
-            {
-                AudioManager.Instance.PlayClip(this);
-            }
+            return AudioManager.Instance.PlayClip(this);
         }
         public void Play()
         {
