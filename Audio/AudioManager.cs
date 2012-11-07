@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 using System.Threading;
+using OpenTK.Audio.OpenAL;
+using OpenTK.Audio;
 
 
 namespace Blueberry.Audio
@@ -28,6 +28,9 @@ namespace Blueberry.Audio
         private static AudioManager instance = null;
 
         internal object workWithListMutex = new object();
+
+        internal readonly EffectsExtension Efx;
+        internal readonly XRamExtension XRam;
 
         /// <summary>
         /// The sole instance of the audio manager.
@@ -59,10 +62,8 @@ namespace Blueberry.Audio
         /// <summary>
         /// Constructs a default audio manager with 16 channels.
         /// </summary>
-        public AudioManager()
-        {
-            if (instance != null) throw new Exception("Can't create more than one instances of AudioManager");
-            Init(16, 4 * 8, 4096, true);
+        public AudioManager():this(16,4*8,4096, true)
+        { 
         }
 
         /// <summary>
@@ -76,6 +77,12 @@ namespace Blueberry.Audio
         public AudioManager(int channels, int buffersPerChannel, int bytesPerBuffer, bool launchThread)
         {
             if (instance != null) throw new Exception("Can't create more than one instances of AudioManager");
+
+            if(AudioContext.CurrentContext == null)
+                new AudioContext();
+            Efx = new EffectsExtension();
+            XRam = new XRamExtension();
+
             Init(channels, buffersPerChannel, bytesPerBuffer, launchThread);
         }
 
@@ -95,12 +102,11 @@ namespace Blueberry.Audio
             ChannelCount = channels;
             Channels = new AudioChannel[channels];
             StaticClips = new List<AudioClip>();
+            Instance = this;
 
             for (int i = 0; i < channels; i++)
                 Channels[i] = new AudioChannel(buffersPerChannel, bytesPerBuffer);
 
-            Instance = this;
-            
             if(launchThread)
             {
                 UpdateThread = new Thread(RunUpdateLoop);
@@ -185,28 +191,14 @@ namespace Blueberry.Audio
         /// </summary>
         public void Dispose()
         {
-            try
-            {
-                RunUpdates = false;
-                UpdateThread.Join();
-            }
-            catch (Exception e)
-            { }
+            RunUpdates = false;
+            UpdateThread.Join();
 
-            try
-            {
-                foreach (AudioChannel channel in Channels)
-                {
-                    try
-                    {
-                        channel.Dispose();
-                    }
-                    catch (Exception e1)
-                    { }
-                }
-            }
-            catch (Exception e2)
-            { }
+            foreach (AudioChannel channel in Channels)
+                channel.Dispose();
+            
+            foreach (var item in StaticClips)
+                item.StaticChanel.Dispose();
         }
     }
 }

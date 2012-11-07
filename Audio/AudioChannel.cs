@@ -16,10 +16,16 @@ namespace Blueberry.Audio
     {
         public float[] SegmentBuffer { get; private set; }
         public short[] CastBuffer { get; private set; }
-        public int[] Buffers { get; private set; }
+        private int[] alBufferIds;
+        public int[] Buffers
+        {
+            get{ return alBufferIds;}
+        }
         public int BufferCount { get; private set; }
         public int BufferSize { get; private set; }
-        public int Source { get; private set; }
+        private int alSourceId;
+        public int Source { get { return alSourceId; } }
+        private int alFilterId;
         public VorbisReader Reader { get; private set; }
         public AudioClip CurrentClip { get; private set; }
 
@@ -42,6 +48,37 @@ namespace Blueberry.Audio
         public bool Stoped { get { ALSourceState st = AL.GetSourceState(Source); return st == ALSourceState.Stopped; } }
         public bool Playing { get { ALSourceState st = AL.GetSourceState(Source); return st == ALSourceState.Playing; } }
 
+        float lowPassHfGain;
+        public float LowPassHFGain
+        {
+            get { return lowPassHfGain; }
+            set
+            {
+                if (AudioManager.Instance.Efx.IsInitialized)
+                {
+                    lowPassHfGain = MathUtils.Clamp(value, 0, 1);
+                    AudioManager.Instance.Efx.Filter(alFilterId, EfxFilterf.LowpassGainHF, lowPassHfGain);
+                    AudioManager.Instance.Efx.BindFilterToSource(Source, alFilterId);
+                    CheckErrors();
+                }
+            }
+        }
+        
+        float volume;
+        public float Volume
+        {
+            get { return volume; }
+            set
+            {
+                volume = MathUtils.Clamp(value, 0, 1);
+                AL.Source(alSourceId, ALSourcef.Gain, volume);
+                CheckErrors();
+            }
+        }
+        
+        public bool IsLooped { get; set; }
+
+
         /// <summary>
         /// Constructs an empty channel, ready to play sound.
         /// </summary>
@@ -49,7 +86,7 @@ namespace Blueberry.Audio
         /// <param name="bufferSize">The size, in bytes, of each audio buffer.</param>
         internal AudioChannel(int bufferCount, int bufferSize)
         {
-            Buffers = new int[bufferCount];
+            alBufferIds = new int[bufferCount];
             BufferCount = bufferCount;
             BufferSize = bufferSize;
             Reader = null;
@@ -61,16 +98,29 @@ namespace Blueberry.Audio
             lastStreamPosition = 0;
 
             // Make the source
-            Source = AL.GenSource();
+            alSourceId = AL.GenSource();
             
             // Make the buffers
-            for(int i = 0; i < BufferCount; i++)
-                Buffers[i] = AL.GenBuffer();
+            alBufferIds = AL.GenBuffers(bufferCount);
+
+            if (AudioManager.Instance.XRam.IsInitialized)
+            {
+                AudioManager.Instance.XRam.SetBufferMode(BufferCount, ref alBufferIds[0], XRamExtension.XRamStorage.Hardware);
+                CheckErrors();
+            }
+            
+            Volume = 1;
+            
+            if (AudioManager.Instance.Efx.IsInitialized)
+            {
+                alFilterId = AudioManager.Instance.Efx.GenFilter();
+                AudioManager.Instance.Efx.Filter(alFilterId, EfxFilteri.FilterType, (int)EfxFilterType.Lowpass);
+                AudioManager.Instance.Efx.Filter(alFilterId, EfxFilterf.LowpassGain, 1);
+                LowPassHFGain = 1;
+            }
         }
 
-        /// <summary>
-        /// Deconstructs the channel, freeing its hardware resources.
-        /// </summary>
+        /// <summary>Deconstructs the channel, freeing its hardware resources.</summary>
         ~AudioChannel()
         {
             Dispose(); 
@@ -85,7 +135,7 @@ namespace Blueberry.Audio
             if(Buffers != null)
                 AL.DeleteBuffers(Buffers);
             AL.DeleteSource(Source);
-            Buffers = null;
+            alBufferIds = null;
             CloseReader();
         }
 
@@ -219,8 +269,7 @@ namespace Blueberry.Audio
                     }
                     else if (samples == 0)
                     {
-                        // Clip is too small to fill the initial buffer, so stop
-                        // buffering.
+                        // Clip is too small to fill the initial buffer, so stop buffering.
                         break;
                     }
                     else
@@ -347,7 +396,7 @@ namespace Blueberry.Audio
                                 processedBuffers--;
                                 continue;
                             }
-
+                        retry:
                             // Buffer the next chunk
                             int readSamples = Reader.ReadSamples(SegmentBuffer, 0, SegmentBuffer.Length);
                             CastBuffers();
@@ -362,7 +411,13 @@ namespace Blueberry.Audio
                             else if (readSamples == 0)
                             {
                                 // Reached the end of the file
-                                eof = true;
+                                if(IsLooped)
+                                {
+                                    Reader.DecodedTime = TimeSpan.Zero;
+                                    goto retry;
+                                }
+                                else
+                                    eof = true;
                             }
                             else
                             {
