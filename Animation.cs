@@ -9,7 +9,8 @@ namespace Blueberry
     {
         None = 0,
         Loop = 1,
-        LoopWithReversing = 2
+        LoopWithReversing = 2,
+        LoopWithReversingInterpolation = 3
     }
     public enum PlaybackState
     {
@@ -17,6 +18,8 @@ namespace Blueberry
         Pause,
         Stop
     }
+	public delegate float Interpolator(float interval);
+
     public abstract class Animation<T> : IAnimation
     {
         public virtual T From { get; protected set; }
@@ -25,17 +28,38 @@ namespace Blueberry
         public LoopMode Loop { get; set; }
         public PlaybackState State { get; private set; }
         public virtual double Period { get; protected set; }
+		public Interpolator InterpolationFunction{ get; set; }
 
+        protected bool interpolatorOrientation; // when first time animation direction is true or false, current interpalation should be the same
         protected double timer; // main timer
+		protected float interval;
+        protected bool direction; // true - move from left to right
 
-        public Animation()
+        public Animation () : this(v => v)  // linear interpolation;
+		{}
+        public Animation (Interpolator interpolator)
         {
             State = PlaybackState.Stop;
+            InterpolationFunction = interpolator; 
         }
 
         public virtual void Animate(double dt)
         {
-           
+            timer += dt;
+            if (timer >= Period)
+            {
+                if (Loop == LoopMode.None)
+                {
+                    timer = Period;
+                    Stop();
+                    goto end;
+                }
+                timer -= Period;
+                if (Loop == LoopMode.LoopWithReversing || Loop == LoopMode.LoopWithReversingInterpolation)
+                    direction = !direction;
+            }
+            end:
+            interval = (float)(timer / Period);
         }
 
         public virtual void Play(bool restart = false)
@@ -45,6 +69,7 @@ namespace Blueberry
                 if (restart)
                 {
                     Value = From;
+                    timer = 0;
                     State = PlaybackState.Play;
                     AnimationManager.Manager.animations.Add(this);
                 }
@@ -55,6 +80,7 @@ namespace Blueberry
                     else if (State == PlaybackState.Stop)
                     {
                         Value = From;
+                        timer = 0;
                         State = PlaybackState.Play;
                         AnimationManager.Manager.animations.Add(this);
                     }

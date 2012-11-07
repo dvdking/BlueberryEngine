@@ -8,7 +8,7 @@ namespace Blueberry
     public class IntAnimation : Animation<int>
     {
         int left, right; // upper and lower bounds
-        int sign; // shows animation direction (incermental or decremental)
+        int range;
         /// <summary>
         /// Constructor of IntAnimation
         /// </summary>
@@ -16,73 +16,62 @@ namespace Blueberry
         /// <param name="to">End value</param>
         /// <param name="period">Duration time</param>
         /// <param name="loopMode">Specify loop behaviour</param>
-        public IntAnimation(int from, int to, double period, LoopMode loopMode)
+        public IntAnimation(int from, int to, double period, LoopMode loopMode, Interpolator interpolator)
+            :base(interpolator)
         {
             From = from;
             To = to;
             left = Math.Min(from, to);
             right = Math.Max(from, to);
-            if (From < To) sign = 1;
-            else sign = -1;
+            interpolatorOrientation = direction = From < To;
 
+            range = right - left;
             Period = period;
             Loop = loopMode;
             Value = From;
         }
-        public IntAnimation()
+        public IntAnimation(int from, int to, double period, LoopMode loopMode)
+            :this(from, to, period, loopMode, v=>v)
         {
-            From = 0;
-            To = 10;
-            Period = 0;
-            Loop = LoopMode.None;
-            Value = 0;
+        }
+        public IntAnimation(int from, int to, double period)
+            :this(from, to, period, LoopMode.Loop, v=>v)
+        {
+        }
+        public IntAnimation()
+            :this(0, 1, 0, LoopMode.None, v=>v)
+        {
         }
         public void Reset()
         {
             Value = From;
             timer = 0;
-            if (From < To) sign = 1;
-            else sign = -1;
         }
 
         public static explicit operator int(IntAnimation anim)
         {
             return anim.Value;
         }
-        // TODO: need to fix it all
         public override void Animate(double dtime)
         {
-            timer += dtime;
-            int val = (int)(timer / Period);
-            if (val > 0)
+            base.Animate(dtime);
+
+            if (direction)
             {
-                Value += val * sign;
-                timer = timer % Period;
-            }
-            if (Value > right || Value < left)
-            {
-                if (Loop == LoopMode.Loop) Value = From; // this is not right, see FloatAnimation
-                else if (Loop == LoopMode.LoopWithReversing)
+                if (Loop == LoopMode.LoopWithReversing && interpolatorOrientation != direction)
                 {
-                    if (sign > 0)
-                        Value = right;
-                    else
-                        Value = left;
-                    sign = -sign;
-                }
-                else { Value = To; Stop(); }
+                    Value = (int)(right - InterpolationFunction(1 - interval) * range);
+                } else
+                    Value = (int)(left + InterpolationFunction(interval) * range);
+                
+            } else
+            {
+                if (Loop == LoopMode.LoopWithReversing && interpolatorOrientation != direction)
+                {
+                    Value = (int)(left + InterpolationFunction(1 - interval) * range);
+                } else
+                    Value = (int)(right - InterpolationFunction(interval) * range);
             }
-        }
-        public override void Play(bool restart = false)
-        {
-            base.Play(restart);
-            if (restart)
-                timer = 0;
-        }
-        public override void Stop()
-        {
-            base.Stop();
-            timer = 0;
         }
     }
 }
