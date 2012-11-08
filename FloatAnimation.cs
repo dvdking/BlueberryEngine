@@ -71,6 +71,7 @@ namespace Blueberry
                 } else
                     Value = right - InterpolationFunction(interval) * range;
             }
+            base.RaiseAnimateEvent();
         }
     }
 }

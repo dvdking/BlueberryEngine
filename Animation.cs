@@ -34,6 +34,9 @@ namespace Blueberry
         protected double timer; // main timer
 		protected float interval;
         protected bool direction; // true - move from left to right
+        public event Action<Animation<T>> OnFinish;
+        public event Action<Animation<T>> OnStart;
+        public event Action<Animation<T>, T> OnAnimate;
 
         public Animation () : this(v => v)  // linear interpolation;
 		{}
@@ -52,6 +55,8 @@ namespace Blueberry
                 {
                     timer = Period;
                     Stop();
+                    if(OnFinish != null)
+                        OnFinish(this);
                     goto end;
                 }
                 timer -= Period;
@@ -61,7 +66,11 @@ namespace Blueberry
             end:
             interval = (float)(timer / Period);
         }
-
+        protected void RaiseAnimateEvent()
+        {
+            if(OnAnimate != null)
+                OnAnimate(this, Value);
+        }
         public virtual void Play(bool restart = false)
         {
             lock (AnimationManager.Manager.updateMutex)
@@ -72,8 +81,9 @@ namespace Blueberry
                     timer = 0;
                     State = PlaybackState.Play;
                     AnimationManager.Manager.animations.Add(this);
-                }
-                else
+                    if (OnStart != null)
+                        OnStart(this);
+                } else
                 {
                     if (State == PlaybackState.Pause)
                         Resume();
@@ -83,6 +93,8 @@ namespace Blueberry
                         timer = 0;
                         State = PlaybackState.Play;
                         AnimationManager.Manager.animations.Add(this);
+                        if (OnStart != null)
+                            OnStart(this);
                     }
                 }
             }
