@@ -110,6 +110,7 @@ namespace Blueberry.Audio
             if(launchThread)
             {
                 UpdateThread = new Thread(RunUpdateLoop);
+                UpdateThread.Name = "Audio thread";
                 UpdateThread.IsBackground = true;
                 UpdateThread.Start();
             }

@@ -49,6 +49,7 @@ namespace Blueberry
             {
                 stopwatch = new Stopwatch();
                 UpdateThread = new Thread(RunUpdateLoop);
+                UpdateThread.Name = "Animation thread";
                 UpdateThread.IsBackground = true;
                 UpdateThread.Start();
             }

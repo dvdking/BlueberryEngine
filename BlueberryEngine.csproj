@@ -103,6 +103,15 @@
     <Compile Include="LightingSystem.cs" />
     <Compile Include="ListTimSort.cs" />
     <Compile Include="MathUtils.cs" />
+    <Compile Include="Particles\MetaParticle.cs" />
+    <Compile Include="Particles\IParticleStateManager.cs" />
+    <Compile Include="Particles\ParticleEmitter.cs" />
+    <Compile Include="Particles\ParticleIterator.cs" />
+    <Compile Include="Particles\ParticleStateManager.cs" />
+    <Compile Include="Particles\ReleaseInformation.cs" />
+    <Compile Include="Particles\Shapes\IEmitterShape.cs" />
+    <Compile Include="Particles\Shapes\LineShape.cs" />
+    <Compile Include="Particles\Shapes\PointShape.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QuadTree.cs" />
     <Compile Include="QuadTreeNode.cs" />
@@ -126,6 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Particles\" />
+    <Folder Include="Particles\Shapes" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

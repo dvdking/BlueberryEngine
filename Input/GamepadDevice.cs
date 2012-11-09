@@ -11,7 +11,7 @@ namespace Blueberry.Input
     public delegate void GamepadStickHandler(object sender, GamepadDevice.ThumbstickState e, Vector2 delta);
     public delegate void GamepadTriggerHandler(object sender, GamepadDevice.TriggerState e);
 
-    public class GamepadDevice
+    public class GamepadDevice:IDisposable
     {
         public event GamepadButtonHandler OnButtonDown;
         public event GamepadButtonHandler OnButtonUp;
@@ -251,5 +251,10 @@ namespace Blueberry.Input
                 Position = position;
             }
         }
+    	
+		public void Dispose()
+		{
+			Vibrate(0, 0);
+		}
     }
 }
