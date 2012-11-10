@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 
-namespace Blueberry
+namespace Blueberry.Animations
 {
     public class FrameAnimation : IntAnimation
     {

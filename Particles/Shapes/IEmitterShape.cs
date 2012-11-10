@@ -1,15 +1,7 @@
-﻿/*
- * Created by SharpDevelop.
- * User: Denis
- * Date: 09.11.2012
- * Time: 13:50
- * 
- * To change this template use Tools | Options | Coding | Edit Standard Headers.
- */
-using System;
+﻿using System;
 using OpenTK;
 
-namespace Blueberry.Particles
+namespace Blueberry.Particles.Shapes
 {
 	/// <summary>
 	/// Description of IEmitterShape.

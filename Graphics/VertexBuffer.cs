@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -9,7 +11,7 @@ using Blueberry.Diagnostics;
 
 namespace Blueberry.Graphics
 {
-    public class VertexBuffer:IDiagnosable
+    public unsafe class VertexBuffer:IDiagnosable, IDisposable
     {
         struct VertexDeclaration
         {
@@ -25,14 +27,19 @@ namespace Blueberry.Graphics
 
         public BufferUsageHint UsageMode { get; set; }
 
-        float[] vertexData;
-        int[] indexData;
+        private IntPtr _indexDataPointer;
+        internal int* IndexData;
+        private int indexDataLength;
+        
+        
+        private IntPtr _vertexDataPointer;
+		internal float* VertexData;
+        private int vertexDataLength;
+        
+        public int VertexDataLength { get { return vertexDataLength; } }
+        public int IndexDataLength { get { return indexDataLength; } }
 
-        public float[] VertexData { get { return vertexData; } }
-
-        public int[] IndexData { get { return indexData; } }
-
-        List<VertexDeclaration> declarations;
+        private List<VertexDeclaration> declarations;
 
         public int VertexOffset { get { return voffset; } }
 
@@ -42,14 +49,8 @@ namespace Blueberry.Graphics
         int ioffset;
 
         int stride;
-        public int Stride
-        {
-            get
-            {
-                return stride;
-            }
-        }
-
+        public int Stride { get { return stride; } }
+        
         public VertexBuffer()
             : this(1024)
         {
@@ -71,9 +72,16 @@ namespace Blueberry.Graphics
             IndexDataBufferObject = tmp;
 
             UsageMode = BufferUsageHint.DynamicDraw;
-
-            vertexData = new float[capacity];
-            indexData = new int[capacity * 3];
+			
+            vertexDataLength = capacity;
+            indexDataLength = capacity * 3;
+            
+            _indexDataPointer = Marshal.AllocHGlobal(indexDataLength * sizeof(int));
+            IndexData = (int*)_indexDataPointer.ToPointer();
+            
+            _vertexDataPointer = Marshal.AllocHGlobal(vertexDataLength * sizeof(float));
+            VertexData = (float*)_vertexDataPointer.ToPointer();
+            
             voffset = 0;
             ioffset = 0;
             stride = 0;
@@ -82,7 +90,10 @@ namespace Blueberry.Graphics
         public void Dispose()
         {
             int id;
-
+            GL.Finish();
+            id = VertexArrayObject;
+            GL.DeleteVertexArrays(1, ref id);
+            
             id = VertexDataBufferObject;
             GL.DeleteBuffers(1, ref id);
             VertexDataBufferObject = -1;
@@ -90,8 +101,9 @@ namespace Blueberry.Graphics
             id = IndexDataBufferObject;
             GL.DeleteBuffers(1, ref id);
             IndexDataBufferObject = -1;
-
-            GC.SuppressFinalize(this);
+			
+            Marshal.FreeHGlobal(_vertexDataPointer);
+            Marshal.FreeHGlobal(_indexDataPointer);
         }
 
         public void DeclareNextAttribute(string name, int elements)
@@ -109,7 +121,7 @@ namespace Blueberry.Graphics
             CheckForOverflowVertexBuffer();
             int n = data.Length;
             for (int i = 0; i < stride; i++)
-                vertexData[voffset++] = n <= i ? 0.0f : data[i];
+            	*(VertexData + voffset++) = n <= i ? 0.0f : data[i];
 
         }
 
@@ -119,7 +131,7 @@ namespace Blueberry.Graphics
             int n = data.Length;
             for (int i = 0; i < count * stride; i++)
             {
-                vertexData[voffset++] = n <= i ? 0.0f : data[i];
+            	*(VertexData + voffset++) = n <= i ? 0.0f : data[i];
             }
         }
 
@@ -128,29 +140,29 @@ namespace Blueberry.Graphics
             CheckForOverflowIndexBuffer(data.Length);
             for (int i = 0; i < data.Length; i++)
             {
-                indexData[ioffset++] = data[i];
+            	*(IndexData + ioffset++) = data[i];
             }
         }
 
         public void UpdateBuffer()
         {
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexDataBufferObject);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(voffset * sizeof(float)), vertexData, UsageMode);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(voffset * sizeof(float)), _vertexDataPointer, UsageMode);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, IndexDataBufferObject);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(ioffset * sizeof(int)), indexData, UsageMode);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(ioffset * sizeof(int)), _indexDataPointer, UsageMode);
         }
 
         public void UpdateVertexBuffer()
         {
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexDataBufferObject);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(voffset * sizeof(float)), vertexData, UsageMode);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(voffset * sizeof(float)), _vertexDataPointer, UsageMode);
         }
 
         public void UpdateIndexBuffer()
         {
             GL.BindBuffer(BufferTarget.ArrayBuffer, IndexDataBufferObject);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(ioffset * sizeof(int)), indexData, UsageMode);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(ioffset * sizeof(int)), _indexDataPointer, UsageMode);
         }
 
         public void Attach(Shader shader)
@@ -195,24 +207,46 @@ namespace Blueberry.Graphics
         {
             ioffset = 0;
         }
-
-        private void CheckForOverflowVertexBuffer(int add = 1)
+		
+        /// <summary>
+        /// This method displaces index offset pointer and return actual pointer to fill buffer from
+        /// </summary>
+        /// <param name="countToFill"></param>
+        internal int* GetIndexPointerToFill(int countToFill)
+        {
+        	CheckForOverflowIndexBuffer(countToFill);
+        	int* ptr = IndexData + ioffset;
+        	ioffset += countToFill;
+        	return ptr;
+        }
+        internal float* GetVertexPointerToFill(int countToFill)
+        {
+        	CheckForOverflowVertexBuffer(countToFill);
+        	float* ptr = VertexData + voffset;
+        	voffset += countToFill * Stride;
+        	return ptr;
+        }
+        internal void CheckForOverflowVertexBuffer(int add = 1)
         {
             int sum = voffset + (stride * add);
 
-            while (sum > vertexData.Length)
+            while (sum > vertexDataLength)
             {
-                Array.Resize<float>(ref vertexData, vertexData.Length * 2);
+            	vertexDataLength = vertexDataLength * 2;
+            	_vertexDataPointer = Marshal.ReAllocHGlobal(_vertexDataPointer, (IntPtr)(vertexDataLength * sizeof(float)));
+            	VertexData = (float*)_vertexDataPointer.ToPointer();
             }
         }
 
-        private void CheckForOverflowIndexBuffer(int add = 1)
+        internal void CheckForOverflowIndexBuffer(int add = 1)
         {
             int sum = ioffset + add;
 
-            while (sum > indexData.Length)
+            while (sum > indexDataLength)
             {
-                Array.Resize<int>(ref indexData, indexData.Length * 2);
+            	indexDataLength = indexDataLength * 2;
+            	_indexDataPointer = Marshal.ReAllocHGlobal(_indexDataPointer, (IntPtr)(indexDataLength * sizeof(int)));
+            	IndexData = (int*)_indexDataPointer.ToPointer();
             }
         }
 
@@ -223,8 +257,8 @@ namespace Blueberry.Graphics
 
         public string DebugInfo()
         {
-            return "Vertex buffer: " + vertexData.Length +";"+
-                    "Index buffer: " + indexData.Length + ";";
+            return "Vertex buffer: " + vertexDataLength +";"+
+                    "Index buffer: " + indexDataLength + ";";
         }
 
         public string DebugName

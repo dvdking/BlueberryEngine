@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Blueberry
+namespace Blueberry.Animations
 {
     public class FloatAnimation : Animation<float>
     {
@@ -36,7 +36,7 @@ namespace Blueberry
         {
         }
 
-        public FloatAnimation():this(0,1,0,Blueberry.LoopMode.None, v=>v)
+        public FloatAnimation():this(0,1,0, LoopMode.None, v=>v)
         {
         }
 

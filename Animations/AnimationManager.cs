@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace Blueberry
+namespace Blueberry.Animations
 {
     class AnimationManager
     {

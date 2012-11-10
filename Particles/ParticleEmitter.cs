@@ -1,4 +1,5 @@
 ﻿using System;
+using Blueberry.Particles.Shapes;
 using OpenTK;
 
 namespace Blueberry.Particles
