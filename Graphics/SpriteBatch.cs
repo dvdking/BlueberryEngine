@@ -1195,12 +1195,24 @@ namespace Blueberry.Graphics
             TryPush(sheet.GLTexID, 1, BeginMode.Triangles);
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
 
-            //vbuffer.AddIndices(offset, offset + 1, offset + 2, offset, offset + 2, offset + 3);
             float tx1 = (float)(glyph.rect.X) / sheet.Width;
             float ty1 = (float)(glyph.rect.Y) / sheet.Height;
             float tx2 = (float)(glyph.rect.X + glyph.rect.Width) / sheet.Width;
             float ty2 = (float)(glyph.rect.Y + glyph.rect.Height) / sheet.Height;
 
+            if (flipVertically)
+            {
+                float temp = ty2;
+                ty2 = ty1;
+                ty1 = temp;
+            }
+            if (flipHorizontally)
+            {
+                float temp = tx2;
+                tx2 = tx1;
+                tx1 = temp;
+            }
+            
             float dx = -(xOrigin * (glyph.rect.Width + (font.IsMonospacingActive ? ((font.MonoSpaceWidth - glyph.rect.Width) / 2) : 0))) * scale;
             float dy = -yOrigin * glyph.rect.Height * scale;
             float sin = (float)Math.Sin(rotation);
