@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using Blueberry.Diagnostics;
 using Blueberry.Graphics.Fonts;
 using OpenTK;
 using OpenTK.Graphics;
@@ -11,7 +12,7 @@ using System.Diagnostics;
 
 namespace Blueberry.Graphics
 {
-	public class SpriteBatch : IDisposable
+	public class SpriteBatch : IDisposable, IDiagnosable
     {
         private struct BatchItem
         {
@@ -51,7 +52,22 @@ namespace Blueberry.Graphics
 
         private int proj_uniform_loc;
         private int view_uniform_loc;
-
+		
+        #region Statistic
+        private int elementsCounter = 0;
+        private int elementsProcessed = 0;
+         
+        public int GetProcessedElementsCount()
+        {     	
+        	return elementsProcessed;	
+        }
+        internal void FrameCheckPoint()
+        {
+        	elementsProcessed = elementsCounter;
+        	elementsCounter = 0;
+        }
+        #endregion
+        
         public SpriteBatch()
         {
             dipQueue = new Queue<SpriteBatch.BatchItem>(25);
@@ -193,10 +209,12 @@ namespace Blueberry.Graphics
 				GL.BindTexture(TextureTarget.Texture2D, b.texture);
 				GL.LineWidth(b.lineWidth);
 				FlushBuffer(b.mode, b.startIndex, count);
+				elementsCounter += count;
 			} while(dipQueue.Count > 0);
 			last = new SpriteBatch.BatchItem() { texture = -1, startIndex = -1, lineWidth = -1, mode = BeginMode.Triangles};
+			vbuffer.ClearBuffer();
         }
-
+		
         public void End(Texture target, bool clear, bool use_back_buffer = false)
         {
             if (use_back_buffer)
@@ -1357,5 +1375,21 @@ namespace Blueberry.Graphics
         }
         
         #endregion PrintText
+		
+		string IDiagnosable.DebugName {
+			get {
+				return "SpriteBatch";
+			}
+		}
+		
+		string IDiagnosable.DebugInfo(int i)
+		{
+			int r = this.GetProcessedElementsCount();
+			switch (i)
+			{
+				case 0: return "Elements: " + r;
+				default: return ";";
+			}
+		}
     }
 }

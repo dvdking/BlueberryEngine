@@ -21,9 +21,10 @@ namespace Blueberry.Diagnostics
 
         public int ValuesByX { get; set; }
         public float ApproximateGraduation { get; set; }
-
-        public DebugGraph(Rectangle rect)
+        public string Name {get; private set; }
+        public DebugGraph(string name, Rectangle rect)
         {
+        	this.Name = name;
             this.rect = rect;
             values = new List<float>();
         }
@@ -57,6 +58,7 @@ namespace Blueberry.Diagnostics
                 SpriteBatch.Instance.DrawLine(r.Right - (j * costx), r.Bottom - (values[i] - minVal) * costy, r.Right - (j + 1)*costx, r.Bottom - (values[i - 1] - minVal) * costy, Color4.Red, 1);
             }
             SpriteBatch.Instance.PrintText(DiagnosticsCenter.font, minVal.ToString(), r.X, r.Bottom, Color.LightYellow, 0, 0.7f, 0, 1f);
+            SpriteBatch.Instance.PrintText(DiagnosticsCenter.font, Name, r.X, r.Top + r.Height / 2, Color.LightGray, 0, 0.7f, 0, 1f);
             SpriteBatch.Instance.PrintText(DiagnosticsCenter.font, maxVal.ToString(), r.X, r.Top, Color.LightBlue, 0, 0.7f, 0, 0f);
         }
     }

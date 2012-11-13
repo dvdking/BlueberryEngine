@@ -50,11 +50,11 @@ namespace Blueberry.Diagnostics
                 font = new BitmapFont(new Font("Consolas", 14));
             graphs = new List<DebugGraph>();
 
-            fpsGraph = new DebugGraph(new Rectangle(120, 30, 200, 40)) { ValuesByX = 20, ApproximateGraduation = 1 };
-            upsGraph = new DebugGraph(new Rectangle(120, 80, 200, 40)) { ValuesByX = 20, ApproximateGraduation = 1 };
-            fdtGraph = new DebugGraph(new Rectangle(120, 130, 200, 60)) { ValuesByX = 120, ApproximateGraduation = 0.01f };
-            udtGraph = new DebugGraph(new Rectangle(120, 200, 200, 60)) { ValuesByX = 120, ApproximateGraduation = 0.01f };
-            memoryGraph = new DebugGraph(new Rectangle(220, 270, 200, 60)) { ValuesByX = 40, ApproximateGraduation = 8f };
+            fpsGraph = new DebugGraph("FPS", new Rectangle(220, 30, 200, 60)) { ValuesByX = 20, ApproximateGraduation = 1 };
+            upsGraph = new DebugGraph("UPS", new Rectangle(220, 100, 200, 60)) { ValuesByX = 20, ApproximateGraduation = 1 };
+            fdtGraph = new DebugGraph("fdt", new Rectangle(220, 170, 200, 60)) { ValuesByX = 120, ApproximateGraduation = 0.01f };
+            udtGraph = new DebugGraph("udt", new Rectangle(220, 240, 200, 60)) { ValuesByX = 120, ApproximateGraduation = 0.01f };
+            memoryGraph = new DebugGraph("mem", new Rectangle(220, 310, 200, 60)) { ValuesByX = 40, ApproximateGraduation = 8f };
 
             graphs.Add(fpsGraph); graphs.Add(upsGraph); graphs.Add(fdtGraph); graphs.Add(udtGraph); graphs.Add(memoryGraph);
             Init();
@@ -79,16 +79,19 @@ namespace Blueberry.Diagnostics
         public void UpdateBuffer()
         {
             buffer.Clear();
-            //int maxW = 0;
             for (int i = 0; i < objects.Count; i++)
             {
                 buffer.Append("["+objects[i].DebugName+"]");
-                buffer.Append(';');
-                string s = objects[i].DebugInfo();
-                //if(s.Length > maxW) maxW = s.Length;
-                buffer.Append(s);
+                buffer.Append(";");
+                string temp;
+                int j = 0;
+                while ((temp = objects[i].DebugInfo(j++)) != ";") 
+                {
+                	buffer.Append("   ");
+                	buffer.Append(temp);
+                	buffer.Append(";");
+                }
             }
-            //drawArea.Width = (int)(font.MonoSpaceWidth * maxW + 20);
             if (state == PanelState.hide)
                 drawArea.Y = -drawArea.Height - 10;
         }
@@ -187,6 +190,7 @@ namespace Blueberry.Diagnostics
                 fps_counter = 0;
                 fpsGraph.AddValue(fps);
             }
+            SpriteBatch.Instance.FrameCheckPoint();
             if (state == PanelState.hide) return;
 
             SpriteBatch.Instance.Begin();
@@ -205,18 +209,17 @@ namespace Blueberry.Diagnostics
             foreach (var item in graphs)
                 item.Draw(dt, drawArea.X, drawArea.Y);
             SpriteBatch.Instance.End();
-
-        }
-
-        public void DebugAction()
-        {
             
         }
 
-        public string DebugInfo()
+        public string DebugInfo(int i)
         {
-
-            return "FPS: " + fps + "; ;UPS: " + ups + "; ;fdt: ; ; ;udt: ; ; ;Memory: " + memStr + ";";//memory.ToString("N1",CultureInfo.InvariantCulture)+";";
+			switch (i) {
+				case 0: return "FPS: " + fps;
+				case 1: return "UPS: " + ups;
+				case 4: return "Mem: " + memStr;
+				default: return ";";
+			}
         }
 
         public string DebugName

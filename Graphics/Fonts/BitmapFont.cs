@@ -497,10 +497,6 @@ namespace Blueberry.Graphics.Fonts
         /// <returns></returns>
         public ProcessedText ProcessText(string text, float maxWidth, bool justify)
         {
-            //TODO: bring justify and alignment calculations in here
-
-            //maxWidth = TransformWidthToViewport(maxWidth);
-
             var nodeList = new TextNodeList(text);
             nodeList.MeasureNodes(fontData, Options);
 

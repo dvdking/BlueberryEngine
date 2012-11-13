@@ -7,8 +7,7 @@ namespace Blueberry.Diagnostics
 {
     public interface IDiagnosable
     {
-        void DebugAction();
-        string DebugInfo();
+        string DebugInfo(int i);
         string DebugName { get; }
     }
 }

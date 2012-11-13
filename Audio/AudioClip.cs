@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-
+using NVorbis;
 
 namespace Blueberry.Audio
 {
@@ -30,7 +30,7 @@ namespace Blueberry.Audio
             AudioManager.Instance.AddClip(this);
             //rawClip = new VorbisFile(fileName);
 
-            //Cache(64 * 1024);
+            Cache(AudioManager.Instance.BytesPerBuffer * AudioManager.Instance.BuffersPerChannel);
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Blueberry.Audio
             //StaticChanel.Prepare();
             AudioManager.Instance.AddClip(this);
             //rawClip = new VorbisFile(inputStream);
-            //Cache(64 * 1024);
+            Cache(AudioManager.Instance.BytesPerBuffer * AudioManager.Instance.BuffersPerChannel);
         }
 
         /// <summary>
@@ -54,25 +54,26 @@ namespace Blueberry.Audio
         /// there's not a delay.
         /// </summary>
         /// <param name="bytes">Then number of PCM bytes to read.</param>
-        /*
+        
         protected void Cache(int bytes)
         {
-            VorbisFileInstance instance = rawClip.makeInstance();
-
+        	underlyingStream.Seek(0, SeekOrigin.Begin);
+            VorbisReader reader = new VorbisReader(underlyingStream, false);
+            
             int totalBytes = 0;
-            byte[] buffer = new byte[4096];
+            float[] buffer = new float[4096];
 
             while (totalBytes < bytes)
             {
-                int bytesRead = instance.read(buffer, buffer.Length, 0, 2, 1, null);
+            	int bytesRead = reader.ReadSamples(buffer, 0, buffer.Length);
 
                 if (bytesRead <= 0)
                     break;
-
                 totalBytes += bytesRead;
             }
+            reader.Dispose();
         }
-        */
+        
         /// <summary>
         /// Plays the audio clip.
         /// </summary>

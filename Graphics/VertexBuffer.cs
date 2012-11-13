@@ -250,15 +250,14 @@ namespace Blueberry.Graphics
             }
         }
 
-        public void DebugAction()
+        public string DebugInfo(int i)
         {
-            throw new NotImplementedException();
-        }
-
-        public string DebugInfo()
-        {
-            return "Vertex buffer: " + vertexDataLength +";"+
-                    "Index buffer: " + indexDataLength + ";";
+        	switch (i) 
+        	{
+        		case 0: return "Vbuffer: " + vertexDataLength;
+        		case 1: return "Ibuffer: " + indexDataLength;
+        		default: return ";";
+        	}
         }
 
         public string DebugName

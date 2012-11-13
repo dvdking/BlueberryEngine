@@ -37,7 +37,8 @@ namespace Blueberry.Animations
         public event Action<Animation<T>> OnFinish;
         public event Action<Animation<T>> OnStart;
         public event Action<Animation<T>, T> OnAnimate;
-
+		public event Action<Animation<T>, T> OnExtremum;
+		
         public Animation () : this(v => v)  // linear interpolation;
 		{}
         public Animation (Interpolator interpolator)
@@ -51,6 +52,8 @@ namespace Blueberry.Animations
             timer += dt;
             if (timer >= Period)
             {
+            	if(OnExtremum != null)
+            		OnExtremum(this, Value);
                 if (Loop == LoopMode.None)
                 {
                     timer = Period;
