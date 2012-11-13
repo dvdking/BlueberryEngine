@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Blueberry.Diagnostics;
@@ -103,12 +104,15 @@ namespace Blueberry.Graphics
             {
                 defaultShader.LoadVertexSource(@"#version 330 core
                                     uniform mat4 projection, view;
+                                    uniform int flip;
                                     in vec2 vposition; in vec4 vcolor; in vec2 vtexcoord;
                                     out vec4 fcolor; out vec2 ftexcoord;
                                     void main(void) {
                                     fcolor = vcolor;
                                     ftexcoord = vtexcoord;
-                                    gl_Position = projection * view * vec4(vposition, 0, 1); }");
+                                    gl_Position = projection * view * vec4(vposition, 0, 1); 
+                                    if(flip == 1) gl_Position.y *= -1; 
+									}");
                 defaultShader.LoadFragmentSource(@"#version 330 core
                                           uniform sampler2D colorTexture;
                                           in vec4 fcolor; in vec2 ftexcoord;
@@ -168,20 +172,25 @@ namespace Blueberry.Graphics
         {
             BindShader(this.defaultShader, "vposition", "vcolor", "vtexcoord", "projection", "view");
         }
-
+        
+		private bool began = false; // if begin was called
         public void Begin()
         {
             Begin(Matrix4.Identity);
         }
-
         public void Begin(Matrix4 transform)
         {
+        	if(began) throw new Exception("Call end first");
+        	began = true;
+        	
             trans = transform;
             vbuffer.ClearBuffer();
         }
-
+		private bool flip = false;
         public void End()
         {
+        	if(!began) throw new Exception("Call begin first");
+        		
             int pr;
             GL.GetInteger(GetPName.CurrentProgram,out pr);
             if(current == null)
@@ -193,30 +202,33 @@ namespace Blueberry.Graphics
                 current.Use();
             current.SetUniform(proj_uniform_loc, ref proj);
             current.SetUniform(view_uniform_loc, ref trans);
-            
+            current.SetUniform("flip", flip ? 1 : 0);
             // nothing to do
-            if (dipQueue.Count == 0)
-                return;
-
-            vbuffer.Bind();
-            vbuffer.UpdateVertexBuffer();
-            vbuffer.UpdateIndexBuffer();
-
-			do
-			{
-				var b = dipQueue.Dequeue();
-				int count = (dipQueue.Count > 0 ? dipQueue.Peek().startIndex : vbuffer.IndexOffset) - b.startIndex;
-				GL.BindTexture(TextureTarget.Texture2D, b.texture);
-				GL.LineWidth(b.lineWidth);
-				FlushBuffer(b.mode, b.startIndex, count);
-				elementsCounter += count;
-			} while(dipQueue.Count > 0);
-			last = new SpriteBatch.BatchItem() { texture = -1, startIndex = -1, lineWidth = -1, mode = BeginMode.Triangles};
-			vbuffer.ClearBuffer();
+            if (dipQueue.Count != 0)
+            {
+	
+	            vbuffer.Bind();
+	            vbuffer.UpdateVertexBuffer();
+	            vbuffer.UpdateIndexBuffer();
+	
+				do
+				{
+					var b = dipQueue.Dequeue();
+					int count = (dipQueue.Count > 0 ? dipQueue.Peek().startIndex : vbuffer.IndexOffset) - b.startIndex;
+					GL.BindTexture(TextureTarget.Texture2D, b.texture);
+					GL.LineWidth(b.lineWidth);
+					FlushBuffer(b.mode, b.startIndex, count);
+					elementsCounter += count;
+				} while(dipQueue.Count > 0);
+				last = new SpriteBatch.BatchItem() { texture = -1, startIndex = -1, lineWidth = -1, mode = BeginMode.Triangles};
+            }
+			flip = false;
+			began = false;
         }
 		
         public void End(Texture target, bool clear, bool use_back_buffer = false)
         {
+        	flip = true;
             if (use_back_buffer)
             {
                 if (clear)
