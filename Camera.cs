@@ -14,6 +14,8 @@ namespace Blueberry
         private int scrHeight;
         private float _scale;
         private float _nextScale;
+        private float _minScale;
+        private float _maxScale;
         private float _rotation;
         private float _nextRotation;
         private Vector2 _position;
@@ -62,8 +64,34 @@ namespace Blueberry
 
         public Vector2 Top { get { return Vector2.Transform(-Vector2.UnitY, Quaternion.FromAxisAngle(Vector3.UnitZ, _rotation)); } }
 
-        public float Scaling { get { return _scale; } set { _scale = Math.Max(value, 0); _nextScale = Math.Max(value, 0); } }
-
+        public float Scaling { get { return _scale; } set { _scale = MathUtils.Clamp(value, _minScale, _maxScale); _nextScale = MathUtils.Clamp(value, _minScale, _maxScale); } }
+		
+        public float MinScale
+        {
+        	get { return _minScale; }
+        	set 
+        	{
+        		if(_space != Rectangle.Empty)
+        		{
+        			float minScale = Math.Max((float)scrWidth / (float)_space.Width, (float)scrHeight / (float)_space.Height);
+        			if(value > _minScale)
+        				_minScale = value;
+        			else
+        				_minScale = Math.Max(minScale, value);
+        		}
+        		else
+        			_minScale = Math.Max(0, value);
+        	} 
+        }
+        public float MaxScale
+        {
+        	get { return _maxScale; }
+        	set
+        	{
+        		_maxScale = Math.Max(_minScale, value);
+        	}
+        }
+        
         /// <summary>Угол поворота воокруг Z</summary>
         public float Rotation
         {
@@ -75,7 +103,7 @@ namespace Blueberry
         public Rectangle AllowedSpace
         {
             get { return _space; }
-            set { _space = value; }
+            set { _space = value; MinScale = _minScale; MaxScale = _maxScale; }
         }
 
         /// <summary>Получает ограничивающую окружность камеры</summary>
@@ -131,6 +159,8 @@ namespace Blueberry
             this._space = Rectangle.Empty;
             this._origin = new Vector2(.5f);
             this._pixelPerfect = false;
+            this._minScale = 0;
+            this._maxScale = float.PositiveInfinity;
         }
 
         /// <summary>Создает новую камеру</summary>
@@ -251,6 +281,9 @@ namespace Blueberry
         {
             if (_smooth)
             {
+            	//_scale = MathUtils.Clamp(_minScale, _maxScale);
+                _nextScale = MathUtils.Clamp(_nextScale, _minScale, _maxScale);
+                
                 _position = Vector2.Lerp(_position, _nextPosition, (float)(_moveSpeed * elapsed));
                 this._scale = MathUtils.Lerp(_scale, _nextScale, (float)(_moveSpeed * elapsed));
                 this._rotation = MathUtils.Lerp(_rotation, _nextRotation, (float)(_moveSpeed * elapsed));
@@ -264,8 +297,18 @@ namespace Blueberry
             }
             if (_space != Rectangle.Empty)
             {
-                _position.X = Math.Min(Math.Max(_space.X + scrWidth / 2, _position.X), _space.Right - scrWidth / 2);
-                _position.Y = Math.Min(Math.Max(_space.Y + scrHeight / 2, _position.Y), _space.Bottom - scrHeight / 2);
+            	/*
+            	float minScale = Math.Max((float)scrWidth / (float)_space.Width, (float)scrHeight / (float)_space.Height);
+            	if(_scale <= minScale)
+            	{
+            		_scale = minScale;
+            		Console.WriteLine("{0}", _nextScale);
+            		_nextScale = minScale;
+            		Console.WriteLine("{0}", _nextScale);
+            	}
+            	*/
+            	_position.X = MathUtils.Clamp(_position.X, _space.X + (scrWidth/2) / _scale, _space.Right - (scrWidth/2) / _scale);
+            	_position.Y = MathUtils.Clamp(_position.Y, _space.Y + (scrHeight/2) / _scale, _space.Bottom - (scrHeight/2) / _scale);
             }
             if (_rumble)
             {
@@ -313,6 +356,8 @@ namespace Blueberry
                 _bounds.Width = (int)Math.Round(Math.Max(Math.Max(lt.X, rt.X), Math.Max(rb.X, lb.X))) - _bounds.X;
                 _bounds.Height = (int)Math.Round(Math.Max(Math.Max(lt.Y, rt.Y), Math.Max(rb.Y, lb.Y))) - _bounds.Y;
             }
+            
+            
         }
 
         public Matrix4 GetViewMatrix(float parallax = 1)
