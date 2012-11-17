@@ -50,16 +50,25 @@ namespace Blueberry.Diagnostics
             float ratio = r.Height / r.Width;
             float costy = rect.Height / (maxVal - minVal);
             float costx = r.Width / ValuesByX;
-            SpriteBatch.Instance.FillRectangle(r, new Color4(0, 0, 0, 0.7f));
-            //SpriteBatch.Instance.dr values.Skip(values.Count - ValuesByX);
-            if(values.Count > 1)
-            for (int i = values.Count-1, j = 0; i >= 1; i--, j++)
+           	SpriteBatch.Instance.FillRectangle(r, new Color4(0, 0, 0, 0.7f));
+           
+           	float current = 0;
+ 			if(values.Count > 0)
             {
-                SpriteBatch.Instance.DrawLine(r.Right - (j * costx), r.Bottom - (values[i] - minVal) * costy, r.Right - (j + 1)*costx, r.Bottom - (values[i - 1] - minVal) * costy, Color4.Red, 1);
+ 				current = (values.Last() - minVal) * costy;
+                SpriteBatch.Instance.DrawLine(r.Left, r.Bottom - current, r.Right + 50, r.Bottom - current, 0.25f, Color4.White);
+ 			}
+            if(values.Count > 1)
+            {
+	            for (int i = values.Count-1, j = 0; i >= 1; i--, j++)
+	                SpriteBatch.Instance.DrawLine(r.Right - (j * costx), r.Bottom - (values[i] - minVal) * costy, r.Right - (j + 1)*costx, r.Bottom - (values[i - 1] - minVal) * costy, 1, Color4.Red);
+            	
             }
             SpriteBatch.Instance.PrintText(DiagnosticsCenter.font, minVal.ToString(), r.X, r.Bottom, Color.LightYellow, 0, 0.7f, 0, 1f);
-            SpriteBatch.Instance.PrintText(DiagnosticsCenter.font, Name, r.X, r.Top + r.Height / 2, Color.LightGray, 0, 0.7f, 0, 1f);
+            //SpriteBatch.Instance.PrintText(DiagnosticsCenter.font, Name, r.X, r.Top + r.Height / 2, Color.LightGray, 0, 0.7f, 0, 1f);
             SpriteBatch.Instance.PrintText(DiagnosticsCenter.font, maxVal.ToString(), r.X, r.Top, Color.LightBlue, 0, 0.7f, 0, 0f);
+            if(values.Count>0)
+            SpriteBatch.Instance.PrintText(DiagnosticsCenter.font, values.Last().ToString()+" "+Name, r.Right + 10,r.Bottom- current-DiagnosticsCenter.font.LineSpacing,Color4.White);
         }
     }
 }

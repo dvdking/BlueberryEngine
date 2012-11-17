@@ -20,7 +20,6 @@ namespace Blueberry.Graphics
             public int texture;
             public int startIndex;
             public BeginMode mode;
-            public float lineWidth;
         }
 
         int pixelTex = -1;
@@ -192,7 +191,7 @@ namespace Blueberry.Graphics
         	if(!began) throw new Exception("Call begin first");
         		
             int pr;
-            GL.GetInteger(GetPName.CurrentProgram,out pr);
+            GL.GetInteger(GetPName.CurrentProgram, out pr);
             if(current == null)
             {
                 current = defaultShader;
@@ -216,11 +215,10 @@ namespace Blueberry.Graphics
 					var b = dipQueue.Dequeue();
 					int count = (dipQueue.Count > 0 ? dipQueue.Peek().startIndex : vbuffer.IndexOffset) - b.startIndex;
 					GL.BindTexture(TextureTarget.Texture2D, b.texture);
-					GL.LineWidth(b.lineWidth);
 					FlushBuffer(b.mode, b.startIndex, count);
 					elementsCounter += count;
 				} while(dipQueue.Count > 0);
-				last = new SpriteBatch.BatchItem() { texture = -1, startIndex = -1, lineWidth = -1, mode = BeginMode.Triangles};
+				last = new SpriteBatch.BatchItem() { texture = -1, startIndex = -1, mode = BeginMode.Triangles};
             }
 			flip = false;
 			began = false;
@@ -252,11 +250,11 @@ namespace Blueberry.Graphics
 		
         BatchItem last;
         
-        private bool TryPush(int texId, float lineWidth, BeginMode mode)
+        private bool TryPush(int texId, BeginMode mode)
         {
-        	if(last.texture != texId || last.lineWidth != lineWidth || last.mode != mode)
+        	if(last.texture != texId || last.mode != mode)
         	{
-        		last = new BatchItem(){ texture = texId, lineWidth = lineWidth, mode = mode, startIndex = vbuffer.IndexOffset};
+        		last = new BatchItem(){ texture = texId, mode = mode, startIndex = vbuffer.IndexOffset};
         		dipQueue.Enqueue(last);
         		return true;
         	}
@@ -271,7 +269,7 @@ namespace Blueberry.Graphics
         {
             if (texture == null)
                 throw new ArgumentException("texture");
-            TryPush(texture.ID, 1, BeginMode.Triangles);
+            TryPush(texture.ID, BeginMode.Triangles);
 
             if (sourceRectangle.IsEmpty)
             {
@@ -403,94 +401,68 @@ namespace Blueberry.Graphics
         #endregion DrawTexture
 
         #region DrawLine
-
-        public unsafe void DrawLine(float x1, float y1, float x2, float y2, Color4 color, float thickness)
+        public unsafe void DrawLine(float x1, float y1, float x2, float y2, float thickness, Color4 color)
         {
-        	TryPush(this.pixelTex, thickness, BeginMode.Lines);
-            #region Add vertices
+        	TryPush(this.pixelTex, BeginMode.Lines);
+            
+        	Vector2 dir = new Vector2(x2 - x1, y2 - y1);
+        	dir.NormalizeFast();
+        	Vector2 perp = dir.PerpendicularLeft;
+        	//perp.NormalizeFast();
+        	float hth = thickness / 2f;
+        	
+        	#region Add vertices
 
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
-            int* ind = vbuffer.GetIndexPointerToFill(2);
-            float* vert = vbuffer.GetVertexPointerToFill(2);
-            *(ind++) = offset++;
-            *(ind++) = offset++;
+            int* ind = vbuffer.GetIndexPointerToFill(6);
+            float* vert = vbuffer.GetVertexPointerToFill(4);
+            *(ind++) = offset; *(ind++) = offset+1; *(ind++) = offset+2;
+            *(ind++) = offset; *(ind++) = offset+2; *(ind++) = offset+3;
             
-            *(vert++) = x1; 
-            *(vert++) = y1; 
-            *(vert++) = color.R; 
-            *(vert++) = color.G;
-            *(vert++) = color.B; 
-            *(vert++) = color.A;
-            *(vert++) = 0;
-            *(vert++) = 0;
+            *(vert++) = x1 + perp.X * hth; *(vert++) = y1 + perp.Y * hth; 
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = 0; *(vert++) = 0; 
 			
-            *(vert++) = x2;
-            *(vert++) = y2; 
-            *(vert++) = color.R; 
-            *(vert++) = color.G;
-            *(vert++) = color.B; 
-            *(vert++) = color.A;
-            *(vert++) = 0;
-            *(vert++) = 0;            
+            *(vert++) = x2 + perp.X * hth; *(vert++) = y2 + perp.Y * hth; 
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = 0; *(vert++) = 0; 
+                       
+            *(vert++) = x2 - perp.X * hth; *(vert++) = y2 - perp.Y * hth; 
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = 0; *(vert++) = 0; 
+			
+            *(vert++) = x1 - perp.X * hth; *(vert++) = y1 - perp.Y * hth; 
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = 0; *(vert++) = 0; 
 
             #endregion Add vertices
         }
 
-        public void DrawLine(Vector2 start, Vector2 end, Color4 color, float thickness)
+        public void DrawLine(Vector2 start, Vector2 end, float thickness, Color4 color)
         {
-            DrawLine(start.X, start.Y, end.X, end.Y, color, thickness);
+            DrawLine(start.X, start.Y, end.X, end.Y,thickness, color);
         }
 
         public void DrawLine(Vector2 start, Vector2 end, Color4 color)
         {
-            DrawLine(start.X, start.Y, end.X, end.Y, color, 1.0f);
+            DrawLine(start.X, start.Y, end.X, end.Y, 1.0f, color);
         }
 
         public void DrawLine(Vector2 start, float angle, float length, Color4 color)
         {
-            DrawLine(start.X, start.Y, start.X + (float)(Math.Sin(angle + MathHelper.PiOver2) * length), start.Y + (float)(Math.Cos(angle + MathHelper.PiOver2) * length), color, 1.0f);
+            DrawLine(start.X, start.Y, start.X + (float)(Math.Sin(angle + MathHelper.PiOver2) * length), start.Y + (float)(Math.Cos(angle + MathHelper.PiOver2) * length), 1.0f, color);
         }
 
-        public void DrawLine(Vector2 start, float angle, float length, Color4 color, float thickness)
+        public void DrawLine(Vector2 start, float angle, float length, float thickness, Color4 color)
         {
-            DrawLine(start.X, start.Y, start.X + (float)(Math.Sin(angle + MathHelper.PiOver2) * length), start.Y + (float)(Math.Cos(angle + MathHelper.PiOver2) * length), color, thickness);
+            DrawLine(start.X, start.Y, start.X + (float)(Math.Sin(angle + MathHelper.PiOver2) * length), start.Y + (float)(Math.Cos(angle + MathHelper.PiOver2) * length), thickness, color);
         }
 
-        public void DrawLine(Vector2 start, Vector2 direction, float length, Color4 color)
+        public void DrawLine(Vector2 start, Vector2 direction, float length, float thickness, Color4 color)
         {
-            DrawLine(start.X, start.Y, start.X + direction.X * length, start.Y + direction.Y * length, color, 1.0f);
+            DrawLine(start.X, start.Y, start.X + direction.X * length, start.Y + direction.Y * length, thickness, color);
         }
-
-        public void DrawLine(Vector2 start, Vector2 direction, float length, Color4 color, float thickness)
-        {
-            DrawLine(start.X, start.Y, start.X + direction.X * length, start.Y + direction.Y * length, color, thickness);
-        }
-
-        public unsafe void DrawLines(Vector2[] points, Color4 color, float thickness)
-        {
-        	TryPush(this.pixelTex, thickness, BeginMode.Lines);
-            #region Add vertices
-
-            int offset = vbuffer.VertexOffset / vbuffer.Stride;
-            int* ind = vbuffer.GetIndexPointerToFill(points.Length);
-            float* vert = vbuffer.GetVertexPointerToFill(points.Length);
-            for (int i = 0; i < points.Length; i++)
-            {
-            	*(ind++) = offset++;
-            	
-            	*(vert++) = points[i].X; 
-            	*(vert++) = points[i].Y; 
-            	*(vert++) = color.R; 
-            	*(vert++) = color.G;
-            	*(vert++) = color.B; 
-            	*(vert++) = color.A;
-            	*(vert++) = 0;
-            	*(vert++) = 0;
-            }
-
-            #endregion Add vertices
-        }
-
+		
         #endregion DrawLine
 
         #region FillPolygon
@@ -537,7 +509,7 @@ namespace Blueberry.Graphics
 
         public unsafe void FillPolygon(IEnumerable<Vector2> points, float x, float y, float rotation, float scale, Color4 color)
         {
-            TryPush(this.pixelTex, 1, BeginMode.Triangles);
+            TryPush(this.pixelTex, BeginMode.Triangles);
             #region Add vertices
 
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
@@ -550,30 +522,19 @@ namespace Blueberry.Graphics
             
             *(vert++) = x + points.ElementAt(0).X * cos * scale - points.ElementAt(0).Y * sin * scale;
             *(vert++) = y + points.ElementAt(0).X * sin * scale + points.ElementAt(0).Y * cos * scale;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) = color.B;
-            *(vert++) = color.A;
-            *(vert++) = 0;
-            *(vert++) = 0;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = 0; *(vert++) = 0;
+           
             
             *(vert++) = x + points.ElementAt(1).X * cos * scale - points.ElementAt(1).Y * sin * scale;
             *(vert++) = y + points.ElementAt(1).X * sin * scale + points.ElementAt(1).Y * cos * scale;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) = color.B;
-            *(vert++) = color.A;
-            *(vert++) = 0;
-            *(vert++) = 0;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = 0; *(vert++) = 0;
             	
             *(vert++) = x + points.ElementAt(2).X * cos * scale - points.ElementAt(2).Y * sin * scale;
             *(vert++) = y + points.ElementAt(2).X * sin * scale + points.ElementAt(2).Y * cos * scale;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) = color.B;
-            *(vert++) = color.A;
-            *(vert++) = 0;
-            *(vert++) = 0;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = 0; *(vert++) = 0;
             
             *(ind++) = offset;
             *(ind++) = offset+1;
@@ -582,12 +543,8 @@ namespace Blueberry.Graphics
             {
 				*(vert++) =x + points.ElementAt(i).X * cos * scale - points.ElementAt(i).Y * sin * scale;
             	*(vert++) = y + points.ElementAt(i).X * sin * scale + points.ElementAt(i).Y * cos * scale;
-            	*(vert++) = color.R;
-            	*(vert++) = color.G;
-            	*(vert++) = color.B;
-            	*(vert++) = color.A;
-            	*(vert++) = 0;
-            	*(vert++) = 0;
+            	*(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            	*(vert++) = 0; *(vert++) = 0;
                 
                 *(ind++) = offset;
             	*(ind++) = offset+i-1;
@@ -599,7 +556,7 @@ namespace Blueberry.Graphics
 
         public void FillRegularPolygon(int vertices, float size, Vector2 position, float rotation, Color4 color)
         {
-            TryPush(this.pixelTex, 1, BeginMode.Triangles);
+            TryPush(this.pixelTex, BeginMode.Triangles);
 
             if (vertices < 3 || vertices > 360)
                 throw new ArgumentException("Vertices must be in range from 3 to 360", "vertices");
@@ -670,7 +627,7 @@ namespace Blueberry.Graphics
 
         public void OutlinePolygon(IEnumerable<Vector2> points, float x, float y, float rotation, float scale, Color4 color)
         {
-            TryPush(this.pixelTex, 1, BeginMode.Triangles);
+            TryPush(this.pixelTex, BeginMode.Triangles);
             #region Add vertices
 
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
@@ -681,7 +638,7 @@ namespace Blueberry.Graphics
             vbuffer.AddVertex(x + points.ElementAt(0).X * cos * scale - points.ElementAt(0).Y * sin * scale,
                               y + points.ElementAt(0).X * sin * scale + points.ElementAt(0).Y * cos * scale,
                                 color.R, color.G, color.B, color.A, 0, 0);
-            int j = 0;
+
             for (int i = 1; i < points.Count(); i++)
             {
                 vbuffer.AddVertex(x + points.ElementAt(i).X * cos * scale - points.ElementAt(i).Y * sin * scale,
@@ -697,12 +654,11 @@ namespace Blueberry.Graphics
 
         public void OutlineRegularPolygon(int vertices, float size, float x, float y, float rotation, Color4 color)
         {
-            TryPush(this.pixelTex, 1, BeginMode.Lines);
+            TryPush(this.pixelTex, BeginMode.Lines);
             if (vertices < 3 || vertices > 360)
                 throw new ArgumentException("Vertices must be in range from 3 to 360", "vertices");
 
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
-            int j = 0;
             for (int i = 0; i < vertices - 1; i++)
                 vbuffer.AddIndices(offset + i, offset + i + 1);
             vbuffer.AddIndices(offset + vertices - 1, offset);
@@ -730,7 +686,7 @@ namespace Blueberry.Graphics
 
         public void FillRectangle(float x, float y, float width, float height, Color4 color, float rotation = 0.0f, float xOrigin = 0.0f, float yOrigin = 0.0f)
         {
-            TryPush(this.pixelTex, 1, BeginMode.Triangles);
+            TryPush(this.pixelTex, BeginMode.Triangles);
             #region Add vertices
 
             float sin = (float)Math.Sin(rotation);
@@ -792,7 +748,7 @@ namespace Blueberry.Graphics
 
         public void OutlineRectangle(float x, float y, float width, float height, Color4 color, float thickness, float rotation, float xOrigin, float yOrigin)
         {
-            TryPush(this.pixelTex, 1, BeginMode.Lines);
+            TryPush(this.pixelTex, BeginMode.Lines);
 
             #region Add vertices
 
@@ -844,7 +800,7 @@ namespace Blueberry.Graphics
 
         public void FillEllipse(float x, float y, float xRadius, float yRadius, Color4 centralColor, Color4 outerColor, int vertices)
         {
-            TryPush(this.pixelTex, 1, BeginMode.Triangles);
+            TryPush(this.pixelTex, BeginMode.Triangles);
 
             if (vertices < 3 || vertices > 360)
                 throw new ArgumentException("Vertices must be in range from 3 to 360", "vertices");
@@ -929,7 +885,7 @@ namespace Blueberry.Graphics
             if (vertices < 3 || vertices > 360)
                 throw new ArgumentException("Vertices must be in range from 3 to 360", "vertices");
 
-            TryPush(this.pixelTex, 1, BeginMode.Lines);
+            TryPush(this.pixelTex, BeginMode.Lines);
             
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
 
@@ -943,7 +899,7 @@ namespace Blueberry.Graphics
                     y + (float)(Math.Sin(degInRad) * yRadius),
                     color.R, color.G, color.B, color.A, 0, 0);
             }
-            int j = 0;
+
             for (int i = 0; i < vertices - 1; i++)
                 vbuffer.AddIndices(offset + i, offset + i + 1);
             vbuffer.AddIndices(offset + vertices - 1, offset);
@@ -1222,7 +1178,7 @@ namespace Blueberry.Graphics
         {
             FontGlyph glyph = font.fontData.CharSetMapping[symbol];
             TexturePage sheet = font.fontData.Pages[glyph.page];
-            TryPush(sheet.GLTexID, 1, BeginMode.Triangles);
+            TryPush(sheet.GLTexID, BeginMode.Triangles);
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
 
             float tx1 = (float)(glyph.rect.X) / sheet.Width;
@@ -1262,41 +1218,23 @@ namespace Blueberry.Graphics
             
             *(vert++) = x + dx * cos - dy * sin;
             *(vert++) = y + dx * sin + dy * cos;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) = color.B;
-            *(vert++) = color.A;
-            *(vert++) = tx1;
-            *(vert++) = ty1;
-            	
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = tx1; *(vert++) = ty1;
+                     	
             *(vert++) = x + (dx + width) * cos - dy * sin;
             *(vert++) = y + (dx + width) * sin + dy * cos;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) = color.B;
-            *(vert++) = color.A;
-            *(vert++) = tx2;
-            *(vert++) = ty1;
-            
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = tx2; *(vert++) = ty1;
+                       
             *(vert++) =x + (dx + width) * cos - (dy + height) * sin;
             *(vert++) = y + (dx + width) * sin + (dy + height) * cos;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) =color.B;
-            *(vert++) = color.A;
-            *(vert++) = tx2;
-            *(vert++) = ty2;
-            	
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = tx2; *(vert++) = ty2;
+                       	
             *(vert++) =x + dx * cos - (dy + height) * sin;
             *(vert++) = y + dx * sin + (dy + height) * cos;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) =color.B;
-            *(vert++) = color.A;
-            *(vert++) = tx1;
-            *(vert++) = ty2;
-
-
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = tx1; *(vert++) = ty2;
         }
         public void PrintSymbol(BitmapFont font, char symbol,
             Vector2 position,
@@ -1323,7 +1261,7 @@ namespace Blueberry.Graphics
             FontGlyph glyph = font.fontData.CharSetMapping[c];
             TexturePage sheet = font.fontData.Pages[glyph.page];
 
-            TryPush(sheet.GLTexID, 1, BeginMode.Triangles);
+            TryPush(sheet.GLTexID, BeginMode.Triangles);
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
 
             float tx1 = (float)(glyph.rect.X) / sheet.Width;
@@ -1348,42 +1286,24 @@ namespace Blueberry.Graphics
             *(ind++) = offset + 2;
             *(ind++) = offset + 3;            
             
-            *(vert++) = x + dx * cos - dy * sin;
-            *(vert++) = y + dx * sin + dy * cos;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) = color.B;
-            *(vert++) = color.A;
-            *(vert++) = tx1;
-            *(vert++) = ty1;
-            	
+            *(vert++) = x + dx * cos - dy * sin; *(vert++) = y + dx * sin + dy * cos;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = tx1; *(vert++) = ty1;
+            
             *(vert++) = x + (dx + width) * cos - dy * sin;
             *(vert++) = y + (dx + width) * sin + dy * cos;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) = color.B;
-            *(vert++) = color.A;
-            *(vert++) = tx2;
-            *(vert++) = ty1;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = tx2;*(vert++) = ty1;
             
             *(vert++) =x + (dx + width) * cos - (dy + height) * sin;
             *(vert++) = y + (dx + width) * sin + (dy + height) * cos;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) =color.B;
-            *(vert++) = color.A;
-            *(vert++) = tx2;
-            *(vert++) = ty2;
-            	
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = tx2; *(vert++) = ty2;
+            
             *(vert++) =x + dx * cos - (dy + height) * sin;
             *(vert++) = y + dx * sin + (dy + height) * cos;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) =color.B;
-            *(vert++) = color.A;
-            *(vert++) = tx1;
-            *(vert++) = ty2;
-
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = tx1; *(vert++) = ty2;
         }
         
         #endregion PrintText

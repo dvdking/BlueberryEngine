@@ -36,13 +36,13 @@ namespace Blueberry.Particles.Shapes
 		}
 		public void GetOffsetAndDirection(out Vector2 offset, out Vector2 direction)
 		{
-			float displacement = RandomTool.RandFloat(-halfLength, halfLength);
+			float displacement = RandomTool.NextSingle(-halfLength, halfLength);
 			offset = _direction * displacement;
 			
 			if(Direction == Vector2.Zero)
 				direction = RandomTool.NextUnitVector2();
 			else
-				direction = BothWays && RandomTool.RandBool() ? -Direction : Direction;
+				direction = BothWays && RandomTool.NextBool() ? -Direction : Direction;
 		}
 	}
 }
