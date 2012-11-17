@@ -193,6 +193,7 @@ namespace Blueberry.Graphics.Fonts
             float maxXpos = float.MinValue;
             float minXPos = float.MaxValue;
 
+            float maxYPos = 0;
             float xOffset = 0f;
             float yOffset = 0f;
 
@@ -207,11 +208,17 @@ namespace Blueberry.Graphics.Fonts
                 {
                     yOffset += LineSpacing;
                     xOffset = 0f;
+                    maxYPos = 0;
                 }
                 else
                 {
                     minXPos = Math.Min(xOffset, minXPos);
-
+                    FontGlyph glyph = null;
+                    if(c != ' ')
+                    {
+                        glyph = fontData.CharSetMapping[c];
+                        maxYPos = Math.Max(maxYPos, glyph.yOffset);
+                    }
                     if (IsMonospacingActive)
                         xOffset += MonoSpaceWidth;
                     else
@@ -221,7 +228,6 @@ namespace Blueberry.Graphics.Fonts
                         //normal character
                         else if (fontData.CharSetMapping.ContainsKey(c))
                         {
-                            FontGlyph glyph = fontData.CharSetMapping[c];
                             xOffset += (float)Math.Ceiling(glyph.rect.Width + fontData.meanGlyphWidth * Options.CharacterSpacing + fontData.GetKerningPairCorrection(i, text, null));
                         }
                     }
@@ -235,7 +241,7 @@ namespace Blueberry.Graphics.Fonts
             if (minXPos != float.MaxValue)
                 maxWidth = maxXpos - minXPos;
 
-            return new SizeF(maxWidth, yOffset + LineSpacing);
+            return new SizeF(maxWidth, yOffset + LineSpacing + maxYPos);
         }
 
         /// <summary>Computes the length of the next line, and whether the line is valid for justification.</summary>

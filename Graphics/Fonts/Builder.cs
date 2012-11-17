@@ -435,8 +435,8 @@ namespace Blueberry.Graphics.Fonts
             }
             minYOffset--; //give one pixel of breathing room?
 
-            foreach (var glyph in initialGlyphs)
-                glyph.yOffset -= minYOffset;
+            for(int i = 0; i<initialGlyphs.Length; i++)
+                initialGlyphs[i].yOffset -= minYOffset;
 
             FontGlyph[] glyphs;
             var bitmapPages = GenerateBitmapSheetsAndRepack(initialGlyphs, new BitmapData[1] { initialBitmapData }, pageWidth, pageHeight, out glyphs, glyphMargin, usePowerOfTwo);
@@ -490,10 +490,10 @@ namespace Blueberry.Graphics.Fonts
             foreach (var page in pages)
                 page.DownScale32((int)(page.bitmap.Width * scale), (int)(page.bitmap.Height * scale));
 
-            foreach (var glyph in glyphs)
+            for (int i = 0; i < glyphs.Length; i++)
             {
-                glyph.rect = new Rectangle((int)(glyph.rect.X * scale), (int)(glyph.rect.Y * scale), (int)(glyph.rect.Width * scale), (int)(glyph.rect.Height * scale));
-                glyph.yOffset = (int)(glyph.yOffset * scale);
+                glyphs[i].rect = new Rectangle((int)(glyphs[i].rect.X * scale), (int)(glyphs[i].rect.Y * scale), (int)(glyphs[i].rect.Width * scale), (int)(glyphs[i].rect.Height * scale));
+                glyphs[i].yOffset = (int)(glyphs[i].yOffset * scale);
             }
         }
 
