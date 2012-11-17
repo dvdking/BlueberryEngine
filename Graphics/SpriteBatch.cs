@@ -226,26 +226,37 @@ namespace Blueberry.Graphics
 		
         public void End(Texture target, bool clear, bool use_back_buffer = false)
         {
-        	flip = true;
+            flip = true;
             if (use_back_buffer)
             {
                 if (clear)
                     GL.Clear(ClearBufferMask.ColorBufferBit);
                 End();
                 GL.BindTexture(TextureTarget.Texture2D, target.ID);
-                GL.CopyTexImage2D(TextureTarget.Texture2D, 0,PixelInternalFormat.Rgba, 0, 0, target.Size.Width, target.Size.Height, 0);
+                GL.CopyTexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 0, 0, target.Size.Width, target.Size.Height, 0);
                 return;
             }
-            if (framebuffer == -1)
+            if (GraphicsDevice.Instance.FramebufferSupport == FeatureSupport.Core)
             {
-                GL.GenFramebuffers(1, out framebuffer);
+                if (framebuffer == -1)
+                    GL.GenFramebuffers(1, out framebuffer);
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer);
+                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, target.ID, 0);
+                if (clear)
+                    GL.Clear(ClearBufferMask.ColorBufferBit);
+                End();
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            } else
+            {
+                if (framebuffer == -1)
+                    GL.Ext.GenFramebuffers(1, out framebuffer);
+                GL.Ext.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer);
+                GL.Ext.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, target.ID, 0);
+                if (clear)
+                    GL.Clear(ClearBufferMask.ColorBufferBit);
+                End();
+                GL.Ext.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             }
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer);
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, target.ID, 0);
-            if (clear)
-                GL.Clear(ClearBufferMask.ColorBufferBit);
-            End();
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
 		
         BatchItem last;

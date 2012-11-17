@@ -35,6 +35,24 @@ namespace Blueberry.Graphics
             } 
         }
 
+        public static byte MajorVersion
+        {
+            get
+            {
+                string sver = GL.GetString(StringName.ShadingLanguageVersion);
+                return byte.Parse(sver[0].ToString());
+            }
+        }
+
+        public static byte MinorVersion
+        {
+            get
+            {
+                string sver = GL.GetString(StringName.ShadingLanguageVersion);
+                return byte.Parse(sver[2].ToString());
+            }
+        }
+
         public Shader()
         {
             _vertex = 0;
