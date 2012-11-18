@@ -40,6 +40,7 @@ namespace Blueberry.Diagnostics
         long memory;
         string memStr;
         float memoryCounter = 0;
+        private string[] sizes = { "B", "KB", "MB", "GB" };
 
         public DiagnosticsCenter()
         {
@@ -54,7 +55,7 @@ namespace Blueberry.Diagnostics
             upsGraph = new DebugGraph("UPS", new Rectangle(250, 100, 200, 60)) { ValuesByX = 20, ApproximateGraduation = 1 };
             fdtGraph = new DebugGraph("fdt", new Rectangle(250, 170, 200, 60)) { ValuesByX = 120, ApproximateGraduation = 0.01f };
             udtGraph = new DebugGraph("udt", new Rectangle(250, 240, 200, 60)) { ValuesByX = 120, ApproximateGraduation = 0.01f };
-            memoryGraph = new DebugGraph("mem", new Rectangle(250, 310, 200, 60)) { ValuesByX = 40, ApproximateGraduation = 8f };
+            memoryGraph = new DebugGraph("mem", new Rectangle(250, 310, 200, 60)) { ValuesByX = 20, ApproximateGraduation = 1f };
 
             graphs.Add(fpsGraph); graphs.Add(upsGraph); graphs.Add(fdtGraph); graphs.Add(udtGraph); graphs.Add(memoryGraph);
             Init();
@@ -115,17 +116,16 @@ namespace Blueberry.Diagnostics
             {
                 memoryCounter = 0;
                 memory = GC.GetTotalMemory(false);
-                memoryGraph.AddValue(memory);
 
                 var usedHeap = (double)memory;
 
-                string[] sizes = { "B", "KB", "MB", "GB" };
                 int order = 0;
                 while (usedHeap >= 1024 && order + 1 < sizes.Length)
                 {
                     order++;
                     usedHeap = usedHeap / 1024;
                 }
+                memoryGraph.AddValue((float)usedHeap);
 
                 memStr = String.Format("{0:0.###} {1}", usedHeap, sizes[order]);
 

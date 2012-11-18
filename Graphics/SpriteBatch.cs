@@ -414,7 +414,7 @@ namespace Blueberry.Graphics
         #region DrawLine
         public unsafe void DrawLine(float x1, float y1, float x2, float y2, float thickness, Color4 color)
         {
-        	TryPush(this.pixelTex, BeginMode.Lines);
+        	TryPush(this.pixelTex, BeginMode.Triangles);
             
         	Vector2 dir = new Vector2(x2 - x1, y2 - y1);
         	dir.NormalizeFast();

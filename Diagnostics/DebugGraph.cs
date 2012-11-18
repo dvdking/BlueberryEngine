@@ -14,8 +14,8 @@ namespace Blueberry.Diagnostics
         int width = 10;
         int height;
         float rangeY;
-        float maxVal = float.NegativeInfinity;
-        float minVal = float.PositiveInfinity;
+        float maxVal = float.MinValue;
+        float minVal = float.MaxValue;
         List<float> values;
         public Rectangle rect;
 
@@ -56,12 +56,12 @@ namespace Blueberry.Diagnostics
  			if(values.Count > 0)
             {
  				current = (values.Last() - minVal) * costy;
-                SpriteBatch.Instance.DrawLine(r.Left, r.Bottom - current, r.Right + 50, r.Bottom - current, 0.25f, Color4.White);
+                SpriteBatch.Instance.DrawLine(r.Left, r.Bottom - current, r.Right + 50, r.Bottom - current, 1f, Color4.White);
  			}
             if(values.Count > 1)
             {
 	            for (int i = values.Count-1, j = 0; i >= 1; i--, j++)
-	                SpriteBatch.Instance.DrawLine(r.Right - (j * costx), r.Bottom - (values[i] - minVal) * costy, r.Right - (j + 1)*costx, r.Bottom - (values[i - 1] - minVal) * costy, 1, Color4.Red);
+	                SpriteBatch.Instance.DrawLine(r.Right - (j * costx), r.Bottom - (values[i] - minVal) * costy, r.Right - (j + 1)*costx, r.Bottom - (values[i - 1] - minVal) * costy, 2, Color4.Red);
             	
             }
             SpriteBatch.Instance.PrintText(DiagnosticsCenter.font, minVal.ToString(), r.X, r.Bottom, Color.LightYellow, 0, 0.7f, 0, 1f);
