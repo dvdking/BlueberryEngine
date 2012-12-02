@@ -66,6 +66,8 @@ namespace Blueberry
                     }
                     if (border != null)
                     {
+                        int b = int.Parse(border);
+                        rectangle.Inflate(-b, -b);
                     }
 
                     content.Add(name, rectangle);

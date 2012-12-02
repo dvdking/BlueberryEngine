@@ -528,8 +528,8 @@ namespace Blueberry.Graphics
             float sin = (float)Math.Sin(rotation);
             float cos = (float)Math.Cos(rotation);
 
-            int* ind = vbuffer.GetIndexPointerToFill(2);
-            float* vert = vbuffer.GetVertexPointerToFill(2);
+            int* ind = vbuffer.GetIndexPointerToFill(points.Count()*3);
+            float* vert = vbuffer.GetVertexPointerToFill(points.Count());
             
             *(vert++) = x + points.ElementAt(0).X * cos * scale - points.ElementAt(0).Y * sin * scale;
             *(vert++) = y + points.ElementAt(0).X * sin * scale + points.ElementAt(0).Y * cos * scale;

@@ -52,11 +52,16 @@ namespace Blueberry.Graphics
         public int Stride { get { return stride; } }
         
         public VertexBuffer()
-            : this(1024)
+            : this(1024, 1024)
         {
         }
 
         public VertexBuffer(int capacity)
+            : this(capacity, capacity)
+        {
+        }
+
+        public VertexBuffer(int vertexCapacity, int indexCapacity)
         {
             declarations = new List<VertexDeclaration>();
 
@@ -73,8 +78,8 @@ namespace Blueberry.Graphics
 
             UsageMode = BufferUsageHint.DynamicDraw;
 			
-            vertexDataLength = capacity;
-            indexDataLength = capacity * 3;
+            vertexDataLength = vertexCapacity;
+            indexDataLength = indexCapacity;
             
             _indexDataPointer = Marshal.AllocHGlobal(indexDataLength * sizeof(int));
             IndexData = (int*)_indexDataPointer.ToPointer();

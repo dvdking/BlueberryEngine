@@ -8,6 +8,15 @@ namespace Blueberry
     /// <summary>Используется для перемещения по 2D миру</summary>
     public class Camera
     {
+        private struct Rumble
+        {
+            public bool enable;
+            public float time;
+            public float pushInterval;
+            public float amount;
+            public float step;
+            public float pushTime;
+        }
         #region Variables
 
         private int scrWidth;
@@ -23,12 +32,14 @@ namespace Blueberry
         private bool _smooth;
         private Vector2 _nextPosition;
         private float _moveSpeed;
-        private bool _rumble;
-        private double _rumbleTime;
-        private float _rumbleAmount;
-        private float _rumbleAmountStep;
-        private int _pushesCount;
-        private double _onePushTime;
+
+        private Rumble _positionRumble;
+        private Rumble _rotationRumble;
+        private sbyte _lastRotationRumbleSign = 1;
+
+        private Rumble _scaleRumble;
+        private sbyte _lastScaleRumbleSign  = 1;
+
         private double _temp;
         private Random rnd;
         private Rectangle _space;
@@ -310,16 +321,8 @@ namespace Blueberry
             	_position.X = MathUtils.Clamp(_position.X, _space.X + (scrWidth/2) / _scale, _space.Right - (scrWidth/2) / _scale);
             	_position.Y = MathUtils.Clamp(_position.Y, _space.Y + (scrHeight/2) / _scale, _space.Bottom - (scrHeight/2) / _scale);
             }
-            if (_rumble)
-            {
-                if (_rumbleTime >= 0)
-                {
-                    _rumbleTime -= elapsed;
-                    Push(elapsed);
-                }
-                else
-                    _rumble = false;
-            }
+            UpdateRumble(elapsed);
+
             // установка начального прямоугольника согласно position
             _bounds.X = (int)((Position.X - scrWidth / 2));
             _bounds.Y = (int)((Position.Y - scrHeight / 2));
@@ -440,46 +443,111 @@ namespace Blueberry
 
         #region Rumble
 
-        private void Push(double dt)
+        private void UpdateRumble(float dt)
         {
-            _temp += dt;
-            if (_temp >= _onePushTime)
+            if (_positionRumble.enable)
             {
-                short diapazon;
-                if (rnd.Next(0, 2) == 1)
-                    diapazon = -1;
+                if (_positionRumble.time >= 0)
+                {
+                    _positionRumble.time -= dt;
+                    _positionRumble.pushTime += dt;
+                    if (_positionRumble.pushTime >= _positionRumble.pushInterval)
+                    {
+                        Vector2 direction = RandomTool.NextUnitVector2();
+                        
+                        _positionRumble.amount += _positionRumble.step;
+                        direction *= (_positionRumble.amount);
+                        
+                        _position += direction;
+                        
+                        _positionRumble.pushTime -= _positionRumble.pushInterval;
+                    }
+                }
                 else
-                    diapazon = 1;
+                    _positionRumble.enable = false;
+            }
+            if (_rotationRumble.enable)
+            {
+                if (_rotationRumble.time >= 0)
+                {
+                    _rotationRumble.time -= dt;
+                    _rotationRumble.pushTime += dt;
+                    if (_rotationRumble.pushTime >= _rotationRumble.pushInterval)
+                    {
 
-                Vector2 direction = new Vector2((float)rnd.NextDouble() * diapazon, (float)rnd.NextDouble() * diapazon);
-                direction.Normalize();
+                        _rotationRumble.amount += _rotationRumble.step;
+                        
+                        _rotation += _lastRotationRumbleSign * RandomTool.NextSingle(0, _rotationRumble.amount);  
 
-                _rumbleAmount += _rumbleAmountStep;
-                direction *= (_rumbleAmount);
+                        _lastRotationRumbleSign = (sbyte)-_lastRotationRumbleSign;
 
-                _position += direction;
+                        _rotationRumble.pushTime -= _rotationRumble.pushInterval;
+                    }
+                }
+                else
+                    _rotationRumble.enable = false;
+            }
+            if (_scaleRumble.enable)
+            {
+                if (_scaleRumble.time >= 0)
+                {
+                    _scaleRumble.time -= dt;
+                    _scaleRumble.pushTime += dt;
+                    if (_scaleRumble.pushTime >= _scaleRumble.pushInterval)
+                    {
+                        
+                        _scaleRumble.amount += _scaleRumble.step;
+                        
+                        _scale += _lastScaleRumbleSign * RandomTool.NextSingle(0, _scaleRumble.amount);  
+                        _lastScaleRumbleSign = (sbyte)-_lastScaleRumbleSign;
 
-                _temp -= _onePushTime;
+                        _scaleRumble.pushTime -= _scaleRumble.pushInterval;
+                    }
+                }
+                else
+                    _scaleRumble.enable = false;
             }
         }
 
-        public void Rumble(double seconds, float amount, int pushesCount)
+        public void RumblePosition(float seconds, float amount, int pushesCount)
         {
-            _rumble = true;
-            _rumbleTime = seconds;
-            _rumbleAmount = amount;
-            this._pushesCount = pushesCount;
-            this._rumbleAmountStep = 0;
+            RumblePosition(seconds, amount, amount, pushesCount);
         }
 
-        public void Rumble(double seconds, float startAmount, float endAmount, int pushesCount)
+        public void RumblePosition(float seconds, float startAmount, float endAmount, int pushesCount)
         {
-            _rumble = true;
-            _rumbleTime = seconds;
-            _rumbleAmount = startAmount;
-            this._pushesCount = pushesCount;
-            this._onePushTime = seconds / pushesCount;
-            this._rumbleAmountStep = (endAmount - startAmount) / pushesCount;
+            _positionRumble.enable = true;
+            _positionRumble.time = seconds;
+            _positionRumble.amount = startAmount;
+            _positionRumble.pushInterval = seconds / pushesCount;
+            _positionRumble.step = (endAmount - startAmount) / pushesCount;
+        }
+
+        public void RumbleRotation(float seconds, float amount, int pushesCount)
+        {
+            RumbleRotation(seconds, amount, amount, pushesCount);
+        }
+        
+        public void RumbleRotation(float seconds, float startAmount, float endAmount, int pushesCount)
+        {
+            _rotationRumble.enable = true;
+            _rotationRumble.time = seconds;
+            _rotationRumble.amount = startAmount;
+            _rotationRumble.pushInterval = seconds / pushesCount;
+            _rotationRumble.step = (endAmount - startAmount) / pushesCount;
+        }
+        public void RumbleScale(float seconds, float amount, int pushesCount)
+        {
+            RumbleScale(seconds, amount, amount, pushesCount);
+        }
+        
+        public void RumbleScale(float seconds, float startAmount, float endAmount, int pushesCount)
+        {
+            _scaleRumble.enable = true;
+            _scaleRumble.time = seconds;
+            _scaleRumble.amount = startAmount;
+            _scaleRumble.pushInterval = seconds / pushesCount;
+            _scaleRumble.step = (endAmount - startAmount) / pushesCount;
         }
 
         #endregion Rumble
