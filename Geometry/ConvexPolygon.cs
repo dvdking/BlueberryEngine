@@ -489,7 +489,7 @@ namespace Blueberry.Geometry
         /// <param name="axis">The axis.</param>
         /// <param name="min">The min.</param>
         /// <param name="max">The max.</param>
-        public void ProjectToAxis(ref Vector2 axis, out float min, out float max)
+        public void ProjectToAxis(Vector2 axis, out float min, out float max)
         {
             // To project a point on an axis use the dot product
             float dotProduct = Vector2.Dot(axis, this[0]);
