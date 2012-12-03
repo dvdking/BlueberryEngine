@@ -528,35 +528,21 @@ namespace Blueberry.Graphics
             float sin = (float)Math.Sin(rotation);
             float cos = (float)Math.Cos(rotation);
 
-            int* ind = vbuffer.GetIndexPointerToFill(points.Count()*3);
+            int* ind = vbuffer.GetIndexPointerToFill(3 + (points.Count()-3)*3);
             float* vert = vbuffer.GetVertexPointerToFill(points.Count());
-            
-            *(vert++) = x + points.ElementAt(0).X * cos * scale - points.ElementAt(0).Y * sin * scale;
-            *(vert++) = y + points.ElementAt(0).X * sin * scale + points.ElementAt(0).Y * cos * scale;
-            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
-            *(vert++) = 0; *(vert++) = 0;
-           
-            
-            *(vert++) = x + points.ElementAt(1).X * cos * scale - points.ElementAt(1).Y * sin * scale;
-            *(vert++) = y + points.ElementAt(1).X * sin * scale + points.ElementAt(1).Y * cos * scale;
-            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
-            *(vert++) = 0; *(vert++) = 0;
-            	
-            *(vert++) = x + points.ElementAt(2).X * cos * scale - points.ElementAt(2).Y * sin * scale;
-            *(vert++) = y + points.ElementAt(2).X * sin * scale + points.ElementAt(2).Y * cos * scale;
-            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
-            *(vert++) = 0; *(vert++) = 0;
-            
+            for (int i = 0; i < points.Count(); i++) 
+            {
+                *(vert++) = x + points.ElementAt(i).X * cos * scale - points.ElementAt(i).Y * sin * scale;
+                *(vert++) = y + points.ElementAt(i).X * sin * scale + points.ElementAt(i).Y * cos * scale;
+                *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+                *(vert++) = 0; *(vert++) = 0;
+            }
             *(ind++) = offset;
             *(ind++) = offset+1;
             *(ind++) = offset+2;
-            for (int i = 3, j = 3; i < points.Count(); i++, j += 3)
-            {
-				*(vert++) =x + points.ElementAt(i).X * cos * scale - points.ElementAt(i).Y * sin * scale;
-            	*(vert++) = y + points.ElementAt(i).X * sin * scale + points.ElementAt(i).Y * cos * scale;
-            	*(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
-            	*(vert++) = 0; *(vert++) = 0;
-                
+
+            for (int i = 3; i < points.Count(); i++)
+            {              
                 *(ind++) = offset;
             	*(ind++) = offset+i-1;
             	*(ind++) = offset+i;
