@@ -356,6 +356,22 @@ namespace Blueberry.Geometry
             return c;
         }
 
+        public Vector2 Center
+        {
+            get
+            {
+                float totalX = 0;
+                float totalY = 0;
+                for (int i = 0; i < this.Count; i++)
+                {
+                    totalX += this[i].X;
+                    totalY += this[i].Y;
+                }
+
+                return new Vector2(totalX / (float)this.Count, totalY / (float)this.Count);
+            }
+        }
+
         /// <summary>Gets the radius based on area.</summary>
         /// <returns></returns>
         public float GetRadius()
