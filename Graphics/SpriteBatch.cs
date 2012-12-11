@@ -144,6 +144,7 @@ namespace Blueberry.Graphics
         public void Dispose()
 		{
         	vbuffer.Dispose();
+        	instance = null;
         }
 
         private void FlushBuffer(BeginMode mode, int offset, int count)

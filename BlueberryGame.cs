@@ -1,6 +1,8 @@
 ﻿
 using System;
+using System.Collections.Generic;
 using Blueberry.Audio;
+using Blueberry.Diagnostics;
 using Blueberry.Graphics;
 using Blueberry.Input;
 using OpenTK;
@@ -43,7 +45,12 @@ namespace Blueberry
 		}
 		
 		internal Capabilities capabilities;
-		int _framebuffer;
+		int _framebuffer = -1;
+		
+		GameFrame _currentFrame;
+		GameFrame _nextFrame;
+		
+		public GameFrame CurrentFrame {get{return _currentFrame;} set {_nextFrame = value;}}
 		
 		public BlueberryGame(int width, int height, string name, bool fullscreen, double contextVersion)
 		{
@@ -59,6 +66,12 @@ namespace Blueberry
 			                         GraphicsContextFlags.Default);
 #else
 									 GraphicsContextFlags.ForwardCompatible);
+#endif
+#if DEBUG
+			new DiagnosticsCenter();
+#endif
+#if (WAV || OGG)
+            new AudioManager(16, 8, 4096, true);
 #endif
 			_gamepad = new GamepadDevice(UserIndex.Any);
 			_gamepads = new GamepadDevice[4];
@@ -85,6 +98,11 @@ namespace Blueberry
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
         }
 
+		public void SetFrame(GameFrame frame)
+		{
+			_nextFrame = frame;
+		}
+		
         public void SetRenderTarget(Texture target)
         {
             if (target == null)
@@ -109,17 +127,38 @@ namespace Blueberry
                 GL.Clear(ClearBufferMask.ColorBufferBit);
             }
         }
+        
         protected virtual void Load()
         {
         	
         }
 		protected virtual void Update(float dt)
 		{
-			
+			if(_currentFrame != null)
+				_currentFrame.Update(dt);
+			if(_nextFrame != null)
+			{
+				if(_currentFrame != null)
+					_currentFrame.Unload();
+				_currentFrame = _nextFrame;
+				_currentFrame.Load();
+				_nextFrame = null;
+			}
+			#if DEBUG
+			DiagnosticsCenter.Instance.Update(dt);
+			if (Keyboard[Key.Tilde])
+                if (DiagnosticsCenter.Instance.Visible) DiagnosticsCenter.Instance.Hide();
+                else DiagnosticsCenter.Instance.Show();
+            #endif
+
 		}
 		protected virtual void Render(float dt)
 		{
-			
+			if(_currentFrame != null)
+				_currentFrame.Render(dt);
+			#if DEBUG
+			DiagnosticsCenter.Instance.Draw(dt);
+			#endif
 			_window.SwapBuffers();
 		}
 
@@ -152,6 +191,7 @@ namespace Blueberry
                     GL.DeleteFramebuffers(1, ref _framebuffer);
                 else
                     GL.Ext.DeleteFramebuffers(1, ref _framebuffer);
+                _framebuffer = -1;
             }
 		}
 	}

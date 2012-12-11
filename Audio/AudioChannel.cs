@@ -234,7 +234,6 @@ namespace Blueberry.Audio
                 CurrentClip.underlyingStream.Seek(0, SeekOrigin.Begin);
                 Reader = AudioHelper.GetReader(CurrentClip.underlyingStream, CurrentClip.Format);
             }
-            Console.WriteLine("OpenReader");
         }
 
         internal void Prepare()
@@ -317,7 +316,7 @@ namespace Blueberry.Audio
                     Reader = null;
                 }
             }
-            Console.WriteLine("Close reader");
+            
         }
 
         /// <summary>

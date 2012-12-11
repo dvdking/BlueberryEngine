@@ -30,15 +30,12 @@ namespace Blueberry.Audio
 		}
 		private void ReadHeader()
 		{
-			//string wtf = new string(reader.ReadChars(1024));
-			//Console.WriteLine(wtf);
             // RIFF header
             string signature = new string(_reader.ReadChars(4));
             if (signature != "RIFF")
                 throw new NotSupportedException("Specified stream is not a wave file.");
 
             int riff_chunck_size = _reader.ReadInt32();
-            Console.WriteLine("riff chunk size {0}", riff_chunck_size);
             string format = new string(_reader.ReadChars(4));
             if (format != "WAVE")
                 throw new NotSupportedException("Specified stream is not a wave file.");
@@ -48,13 +45,13 @@ namespace Blueberry.Audio
             if (format_signature != "fmt ")
                 throw new NotSupportedException("Specified wave file is not supported.");
 
-            int format_chunk_size = _reader.ReadInt32();Console.WriteLine("format chunk size {0}", format_chunk_size);
-            int audio_format = _reader.ReadInt16();Console.WriteLine("audio format {0}", audio_format);
-            int num_channels = _reader.ReadInt16();Console.WriteLine("channels {0}", num_channels);
-            int sample_rate = _reader.ReadInt32();Console.WriteLine("sample rate {0}", sample_rate);
-            int byte_rate = _reader.ReadInt32();Console.WriteLine("byte rate {0}", byte_rate);
-            int block_align = _reader.ReadInt16();Console.WriteLine("block align {0}", block_align);
-            _bitsPerSample = _reader.ReadInt16();Console.WriteLine("bits per sample {0}", _bitsPerSample);
+            int format_chunk_size = _reader.ReadInt32();
+            int audio_format = _reader.ReadInt16();
+            int num_channels = _reader.ReadInt16();
+            int sample_rate = _reader.ReadInt32();
+            int byte_rate = _reader.ReadInt32();
+            int block_align = _reader.ReadInt16();
+            _bitsPerSample = _reader.ReadInt16();
 
             
             string next_signature = new string(_reader.ReadChars(4));
@@ -64,10 +61,7 @@ namespace Blueberry.Audio
             {
 	            while(next_signature != "data")
 	            {
-	            	Console.WriteLine("unknown chunk name {0}", next_signature);
-	            	Console.WriteLine("unknown chunk size {0}", signature_size);
 	            	signature_data = new string(_reader.ReadChars(signature_size));
-	            	Console.WriteLine("unknown chunk data {0}", signature_data);
 	            	next_signature = new string(_reader.ReadChars(4));
 	            	signature_size = _reader.ReadInt32();
 	            }
@@ -77,7 +71,7 @@ namespace Blueberry.Audio
             	throw new NotSupportedException("Specified wave file is not supported.");
             }
 
-            int data_chunk_size = signature_size;Console.WriteLine("data chunk size {0}", data_chunk_size);
+            int data_chunk_size = signature_size;
 
             Channels = num_channels;
             SampleRate = sample_rate;

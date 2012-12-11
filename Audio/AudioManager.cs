@@ -202,6 +202,7 @@ namespace Blueberry.Audio
             
             foreach (var item in StaticClips)
                 item.StaticChanel.Dispose();
+            instance = null;
         }
     }
 }
