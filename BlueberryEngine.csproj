@@ -11,19 +11,24 @@
     <RootNamespace>Blueberry</RootNamespace>
     <AssemblyName>BlueberryEngine</AssemblyName>
     <FileAlignment>512</FileAlignment>
+    <NoStdLib>False</NoStdLib>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>True</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>Full</DebugType>
     <Optimize>True</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;WINDOWS</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;WINDOWS;WAV; OGG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>
-    </DocumentationFile>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <BaseAddress>4194304</BaseAddress>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -34,6 +39,19 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <BaseAddress>4194304</BaseAddress>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <BaseAddress>4194304</BaseAddress>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -55,9 +73,13 @@
     <Compile Include="Audio\AudioChannel.cs" />
     <Compile Include="Audio\AudioClip.cs" />
     <Compile Include="Audio\AudioManager.cs" />
+    <Compile Include="Audio\WavAudioReader.cs" />
+    <Compile Include="BlueberryGame.cs" />
+    <Compile Include="Capabilities.cs" />
     <Compile Include="Diagnostics\DebugGraph.cs" />
     <Compile Include="Diagnostics\DiagnosticsCenter.cs" />
     <Compile Include="Diagnostics\IDiagnosable.cs" />
+    <Compile Include="GameFrame.cs" />
     <Compile Include="Geometry\Circle.cs" />
     <Compile Include="Geometry\ConvexPolygon.cs" />
     <Compile Include="Geometry\Line.cs" />
@@ -96,7 +118,6 @@
     <Compile Include="Graphics\Shader.cs" />
     <Compile Include="Graphics\VertexBuffer.cs" />
     <Compile Include="Graphics\SpriteBatch.cs" />
-    <Compile Include="Graphics\GraphicsDevice.cs" />
     <Compile Include="Graphics\Texture.cs" />
     <Compile Include="Light.cs" />
     <Compile Include="LightingSystem.cs" />
@@ -126,15 +147,18 @@
     <Compile Include="Tile.cs" />
     <Compile Include="TimSortExtender.cs" />
     <Compile Include="Audio\AudioRemoteControll.cs" />
+    <Compile Include="Audio\AudioReader.cs" />
+    <Compile Include="Audio\OggAudioReader.cs" />
+    <Compile Include="Audio\AudioHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Particles\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="nvorbis\NVorbis\NVorbis.csproj">
       <Project>{A372E591-DFEF-49C4-9C82-98C4361EFCCD}</Project>
       <Name>NVorbis</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Particles\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

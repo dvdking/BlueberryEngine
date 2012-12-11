@@ -1,21 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using NVorbis;
 
 namespace Blueberry.Audio
 {
+    public enum AudioFormat:byte
+    {
+        OGG = 1,
+        WAV = 2, // not implemented
+        Unknown = 0
+    }
+
     /// <summary>
     /// A container for audio.  Represents a single piece of audio that can
     /// be repeatedly played.
     /// </summary>
-    public class AudioClip
+    public class AudioClip : IDisposable
     {
         //VorbisFile rawClip;
 
         internal Stream underlyingStream;
-
+        public AudioFormat Format {get; private set;}
         public AudioChannel StaticChanel { get; private set; }
         /// <summary>
         /// Constructs an audio clip from the given file.
@@ -23,29 +27,34 @@ namespace Blueberry.Audio
         /// <param name="fileName">The file which to read from.</param>
         public AudioClip(string fileName)
         {
-            underlyingStream = File.OpenRead(fileName);
-            StaticChanel = new AudioChannel(AudioManager.Instance.BuffersPerChannel, AudioManager.Instance.BytesPerBuffer);
-            StaticChanel.Init(this);
-            //StaticChanel.Prepare();
-            AudioManager.Instance.AddClip(this);
-            //rawClip = new VorbisFile(fileName);
-
-            Cache(AudioManager.Instance.BytesPerBuffer * AudioManager.Instance.BuffersPerChannel);
+            AudioFormat f = AudioFormat.Unknown;
+            if(fileName.EndsWith("ogg") || fileName.EndsWith("OGG"))
+                f = AudioFormat.OGG;
+            if(fileName.EndsWith("wav") || fileName.EndsWith("WAV"))
+                f = AudioFormat.WAV;
+            Init(File.OpenRead(fileName),f); 
         }
 
         /// <summary>
         /// Reads an audio clip from the given stream.
         /// </summary>
         /// <param name="inputStream">The stream to read from.</param>
-        public AudioClip(Stream inputStream)
+        public AudioClip(Stream inputStream, AudioFormat format)
         {
-            underlyingStream = inputStream;
+            Init(inputStream, format);
+        }
+
+        private void Init(Stream stream, AudioFormat format)
+        {
+            if(format == AudioFormat.Unknown)
+                throw new Exception("Audio format unknown");
+            Format = format;
+            underlyingStream = stream;
             StaticChanel = new AudioChannel(AudioManager.Instance.BuffersPerChannel, AudioManager.Instance.BytesPerBuffer);
             StaticChanel.Init(this);
-            //StaticChanel.Prepare();
             AudioManager.Instance.AddClip(this);
-            //rawClip = new VorbisFile(inputStream);
-            Cache(AudioManager.Instance.BytesPerBuffer * AudioManager.Instance.BuffersPerChannel);
+            if(Format == AudioFormat.OGG)
+            	Cache(AudioManager.Instance.BytesPerBuffer * AudioManager.Instance.BuffersPerChannel);
         }
 
         /// <summary>
@@ -58,10 +67,10 @@ namespace Blueberry.Audio
         protected void Cache(int bytes)
         {
         	underlyingStream.Seek(0, SeekOrigin.Begin);
-            VorbisReader reader = new VorbisReader(underlyingStream, false);
+            IAudioReader reader = AudioHelper.GetReader(underlyingStream, Format);
             
             int totalBytes = 0;
-            float[] buffer = new float[4096];
+            short[] buffer = new short[4096];
 
             while (totalBytes < bytes)
             {
@@ -110,5 +119,12 @@ namespace Blueberry.Audio
             }
         }
 
+        #region IDisposable implementation
+        public void Dispose()
+        {
+            underlyingStream.Close();
+            underlyingStream.Dispose();
+        }
+        #endregion
     }
 }

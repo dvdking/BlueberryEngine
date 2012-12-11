@@ -38,6 +38,7 @@ namespace Blueberry.Graphics
                 return instance;
             }
         }
+        internal static bool HasInstance{ get { return instance != null; } }
 
         private VertexBuffer vbuffer;
 
@@ -236,7 +237,7 @@ namespace Blueberry.Graphics
                 GL.CopyTexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 0, 0, target.Size.Width, target.Size.Height, 0);
                 return;
             }
-            if (GraphicsDevice.Instance.FramebufferSupport == FeatureSupport.Core)
+            if (BlueberryGame.CurrentGame.capabilities.Framebuffers == GLExtensionSupport.Core)
             {
                 if (framebuffer == -1)
                     GL.GenFramebuffers(1, out framebuffer);

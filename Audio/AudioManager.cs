@@ -50,7 +50,8 @@ namespace Blueberry.Audio
                 instance = value;
             }
         }
-
+		internal static bool HasInstance {get{return instance != null;}}
+		
         /// <summary>
         /// Disposes of all resources used by the audio manager.
         /// </summary>

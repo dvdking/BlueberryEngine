@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
-using NVorbis;
 using System.IO;
 
 namespace Blueberry.Audio
@@ -14,8 +9,7 @@ namespace Blueberry.Audio
     /// </summary>
     public class AudioChannel : IDisposable
     {
-        public float[] SegmentBuffer { get; private set; }
-        public short[] CastBuffer { get; private set; }
+        public short[] SampleBuffer { get; private set; }
         private int[] alBufferIds;
         public int[] Buffers
         {
@@ -26,7 +20,7 @@ namespace Blueberry.Audio
         private int alSourceId;
         public int Source { get { return alSourceId; } }
         private int alFilterId;
-        public VorbisReader Reader { get; private set; }
+        public IAudioReader Reader { get; private set; }
         public AudioClip CurrentClip { get; private set; }
 
         public ALFormat CurrentFormat { get; private set; }
@@ -34,8 +28,6 @@ namespace Blueberry.Audio
 
         private bool eof;
 
-        private long lastStreamPosition;
-        
         public bool IsFree
         {
             get
@@ -92,10 +84,7 @@ namespace Blueberry.Audio
             Reader = null;
             CurrentClip = null;
 
-            SegmentBuffer = new float[bufferSize];
-            CastBuffer = new short[bufferSize];
-
-            lastStreamPosition = 0;
+            SampleBuffer = new short[bufferSize];
 
             // Make the source
             alSourceId = AL.GenSource();
@@ -242,10 +231,10 @@ namespace Blueberry.Audio
         {
             lock (readerMutex)
             {
-                lastStreamPosition = 0;
-                CurrentClip.underlyingStream.Seek(lastStreamPosition, SeekOrigin.Begin);
-                Reader = new VorbisReader(CurrentClip.underlyingStream, false);
+                CurrentClip.underlyingStream.Seek(0, SeekOrigin.Begin);
+                Reader = AudioHelper.GetReader(CurrentClip.underlyingStream, CurrentClip.Format);
             }
+            Console.WriteLine("OpenReader");
         }
 
         internal void Prepare()
@@ -255,8 +244,7 @@ namespace Blueberry.Audio
                 Stop();
             lock (readerMutex)
             {
-                lastStreamPosition = 0;
-                Reader.DecodedTime = TimeSpan.Zero;
+                Reader.Position = 0; //CurrentTime = TimeSpan.Zero;
             }
             eof = false;
 
@@ -267,14 +255,12 @@ namespace Blueberry.Audio
             {
                 lock (readerMutex)
                 {
-                    int samples = Reader.ReadSamples(SegmentBuffer, 0, SegmentBuffer.Length);
-
-                    CastBuffers();
+                    int samples = Reader.ReadSamples(SampleBuffer, 0, SampleBuffer.Length);
 
                     if (samples > 0)
                     {
                         // Buffer the segment
-                        AL.BufferData(Buffers[i], CurrentFormat, CastBuffer, samples * sizeof(short), CurrentRate);
+                        AL.BufferData(Buffers[i], CurrentFormat, SampleBuffer, samples * sizeof(short), CurrentRate);
 
                         usedBuffers++;
                     }
@@ -315,8 +301,7 @@ namespace Blueberry.Audio
                 lock (readerMutex)
                 {
                     AL.SourceStop(Source);
-                    lastStreamPosition = 0;
-                    Reader.DecodedTime = TimeSpan.Zero;
+                    Reader.Position = 0;
                 }
             }
             if(currentRemote != null) currentRemote.SoftBreak();
@@ -332,6 +317,7 @@ namespace Blueberry.Audio
                     Reader = null;
                 }
             }
+            Console.WriteLine("Close reader");
         }
 
         /// <summary>
@@ -356,7 +342,6 @@ namespace Blueberry.Audio
             
             if (Reader != null)
             {
-                CurrentClip.underlyingStream.Position = lastStreamPosition;
                 int buffersQueued;
                 AL.GetSource(Source, ALGetSourcei.BuffersQueued, out buffersQueued);
 
@@ -410,13 +395,12 @@ namespace Blueberry.Audio
                             }
                         retry:
                             // Buffer the next chunk
-                            int readSamples = Reader.ReadSamples(SegmentBuffer, 0, SegmentBuffer.Length);
-                            CastBuffers();
+                            int readSamples = Reader.ReadSamples(SampleBuffer, 0, SampleBuffer.Length);
 
                             if (readSamples > 0)
                             {
                                 // TOOD: Queue multiple buffers here
-                                AL.BufferData(removedBuffer, CurrentFormat, CastBuffer, readSamples * sizeof(short),
+                                AL.BufferData(removedBuffer, CurrentFormat, SampleBuffer, readSamples * sizeof(short),
                                     CurrentRate);
                                 AL.SourceQueueBuffer(Source, removedBuffer);
                             }
@@ -425,7 +409,7 @@ namespace Blueberry.Audio
                                 // Reached the end of the file
                                 if(IsLooped)
                                 {
-                                    Reader.DecodedTime = TimeSpan.Zero;
+                                    Reader.Position = 0;
                                     goto retry;
                                 }
                                 else
@@ -449,18 +433,6 @@ namespace Blueberry.Audio
                         }
                     }
                 }
-
-                lastStreamPosition = CurrentClip.underlyingStream.Position;
-            }
-        }
-        private void CastBuffers()
-        {
-            for (int i = 0; i < BufferSize; i++)
-            {
-                var temp = (int)(32767f * SegmentBuffer[i]);
-                if (temp > short.MaxValue) temp = short.MaxValue;
-                else if (temp < short.MinValue) temp = short.MinValue;
-                CastBuffer[i] = (short)temp;
             }
         }
     }
