@@ -10,21 +10,22 @@ namespace Blueberry
         Extension,
         None
     }
-	public struct Capabilities
+    public static class Capabilities
 	{
-		public GLExtensionSupport Framebuffers;
-		public float OGLVersion;
-		public int OGLVersionMajor;
-		public int OGLVersionMinor;
-		public float GLSLVersion;
-		public int GLSLVersionMajor;
-		public int GLSLVersionMinor;
-		
-		public void Test()
+        public static GLExtensionSupport Framebuffers { get; private set; }
+        public static float OGLVersion { get; private set; }
+        public static int OGLVersionMajor { get; private set; }
+        public static int OGLVersionMinor { get; private set; }
+
+
+        public static float GLSLVersion { get; private set; }
+        public static int GLSLVersionMajor { get; private set; }
+        public static int GLSLVersionMinor { get; private set; }
+
+        public static void Test()
 		{
-			string tempStr;
-			#region opengl version
-			tempStr = GL.GetString(StringName.Version);
+            #region opengl version
+			string tempStr = GL.GetString(StringName.Version);
             tempStr = tempStr.Substring(0, 3);
             float fver;
             if (!float.TryParse(tempStr, out fver))
@@ -37,6 +38,7 @@ namespace Blueberry
             OGLVersionMajor = int.Parse(tempStr[0].ToString());
             OGLVersionMinor = int.Parse(tempStr[2].ToString());
             #endregion
+
             #region framebuffers
             if(OGLVersion >= 3f)
                 Framebuffers = GLExtensionSupport.Core;

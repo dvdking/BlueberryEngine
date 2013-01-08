@@ -151,10 +151,9 @@
     <Compile Include="Audio\OggAudioReader.cs" />
     <Compile Include="Audio\AudioHelper.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="nvorbis\NVorbis\NVorbis.csproj">
-      <Project>{A372E591-DFEF-49C4-9C82-98C4361EFCCD}</Project>
+      <Project>{a372e591-dfef-49c4-9c82-98c4361efccd}</Project>
       <Name>NVorbis</Name>
     </ProjectReference>
   </ItemGroup>

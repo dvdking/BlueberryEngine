@@ -168,7 +168,7 @@ namespace Blueberry
             this._rotation = 0.0f;
             this._smooth = moveSmooth;
             this._space = Rectangle.Empty;
-            this._origin = new Vector2(.5f);
+            this._origin = new Vector2(.5f, .5f);
             this._pixelPerfect = false;
             this._minScale = 0;
             this._maxScale = float.PositiveInfinity;
