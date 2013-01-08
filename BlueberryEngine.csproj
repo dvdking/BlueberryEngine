@@ -34,7 +34,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>True</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;OGG;WAV;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -151,9 +151,7 @@
     <Compile Include="Audio\OggAudioReader.cs" />
     <Compile Include="Audio\AudioHelper.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Particles\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="nvorbis\NVorbis\NVorbis.csproj">
       <Project>{A372E591-DFEF-49C4-9C82-98C4361EFCCD}</Project>
