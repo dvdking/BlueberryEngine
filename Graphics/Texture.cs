@@ -15,7 +15,7 @@ namespace Blueberry.Graphics
         public bool IsDisposed { get; protected set; }
 
         public bool IsLocked { get; protected set; }
-
+        
         protected ImageLockMode LockMode;
 
         public int ID { get; private set; }
@@ -230,6 +230,14 @@ namespace Blueberry.Graphics
         public Vector2 GetTextureCoordinate(Vector2 point)
         {
             return new Vector2(point.X / (float)Size.Width, point.Y / (float)Size.Height);
+        }
+
+        public void MakePixelPerfect()
+        {
+            MagFilter = TextureMagFilter.Nearest;
+            MinFilter = TextureMinFilter.Nearest;
+            this.VerticalWrap = TextureWrapMode.ClampToEdge;
+            this.HorizontalWrap = TextureWrapMode.ClampToEdge;
         }
 
         #region Image IO

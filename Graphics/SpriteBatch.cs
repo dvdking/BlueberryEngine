@@ -13,7 +13,7 @@ using System.Diagnostics;
 
 namespace Blueberry.Graphics
 {
-	public class SpriteBatch : IDisposable, IDiagnosable
+    public class SpriteBatch : IDisposable, IDiagnosable
     {
         private struct BatchItem
         {
@@ -38,12 +38,12 @@ namespace Blueberry.Graphics
                 return instance;
             }
         }
-        internal static bool HasInstance{ get { return instance != null; } }
+        internal static bool HasInstance { get { return instance != null; } }
 
         private VertexBuffer vbuffer;
 
         Queue<BatchItem> dipQueue;
-        
+
         private RectangleF tempRect = RectangleF.Empty;
         private Vector2 texCoordTL = Vector2.Zero;
         private Vector2 texCoordBR = Vector2.Zero;
@@ -53,30 +53,30 @@ namespace Blueberry.Graphics
 
         private int proj_uniform_loc;
         private int view_uniform_loc;
-		
+
         #region Statistic
         private int elementsCounter = 0;
         private int elementsProcessed = 0;
-         
+
         public int GetProcessedElementsCount()
-        {     	
-        	return elementsProcessed;	
+        {
+            return elementsProcessed;
         }
         internal void FrameCheckPoint()
         {
-        	elementsProcessed = elementsCounter;
-        	elementsCounter = 0;
+            elementsProcessed = elementsCounter;
+            elementsCounter = 0;
         }
         #endregion
-        
+
         public SpriteBatch()
         {
             dipQueue = new Queue<SpriteBatch.BatchItem>(25);
-            
+
             vbuffer = new VertexBuffer(1024);
             Diagnostics.DiagnosticsCenter.Instance.Add(vbuffer);
             defaultShader = new Shader();
-            
+
             if (Shader.Version < 3.3f)
             {
                 defaultShader.LoadVertexSource(@"#version 120
@@ -92,13 +92,13 @@ namespace Blueberry.Graphics
                     ftexcoord = vtexcoord;
                     gl_Position = projection * view * vec4(vposition, 0, 1); 
                 }");
-                
+
                 defaultShader.LoadFragmentSource(@"#version 120
                                           uniform sampler2D colorTexture;
                                           varying vec4 fcolor; varying vec2 ftexcoord;
 
                                           void main(void) { gl_FragColor = texture2D(colorTexture, ftexcoord) * fcolor; }");
-                
+
             }
             else
             {
@@ -142,9 +142,9 @@ namespace Blueberry.Graphics
                PixelFormat.Bgra, PixelType.Float, pix);
         }
         public void Dispose()
-		{
-        	vbuffer.Dispose();
-        	instance = null;
+        {
+            vbuffer.Dispose();
+            instance = null;
         }
 
         private void FlushBuffer(BeginMode mode, int offset, int count)
@@ -173,32 +173,32 @@ namespace Blueberry.Graphics
         {
             BindShader(this.defaultShader, "vposition", "vcolor", "vtexcoord", "projection", "view");
         }
-        
-		private bool began = false; // if begin was called
+
+        private bool began = false; // if begin was called
         public void Begin()
         {
             Begin(Matrix4.Identity);
         }
         public void Begin(Matrix4 transform)
         {
-        	if(began) throw new Exception("Call end first");
-        	began = true;
-        	
+            if (began) throw new Exception("Call end first");
+            began = true;
+
             trans = transform;
             vbuffer.ClearBuffer();
         }
-		private bool flip = false;
+        private bool flip = false;
         public void End()
         {
-        	if(!began) throw new Exception("Call begin first");
-        		
+            if (!began) throw new Exception("Call begin first");
+
             int pr;
             GL.GetInteger(GetPName.CurrentProgram, out pr);
-            if(current == null)
+            if (current == null)
             {
                 current = defaultShader;
                 current.Use();
-            } 
+            }
             if (current.Program != pr)
                 current.Use();
             current.SetUniform(proj_uniform_loc, ref proj);
@@ -207,25 +207,25 @@ namespace Blueberry.Graphics
             // nothing to do
             if (dipQueue.Count != 0)
             {
-	
-	            vbuffer.Bind();
-	            vbuffer.UpdateVertexBuffer();
-	            vbuffer.UpdateIndexBuffer();
-	
-				do
-				{
-					var b = dipQueue.Dequeue();
-					int count = (dipQueue.Count > 0 ? dipQueue.Peek().startIndex : vbuffer.IndexOffset) - b.startIndex;
-					GL.BindTexture(TextureTarget.Texture2D, b.texture);
-					FlushBuffer(b.mode, b.startIndex, count);
-					elementsCounter += count;
-				} while(dipQueue.Count > 0);
-				last = new SpriteBatch.BatchItem() { texture = -1, startIndex = -1, mode = BeginMode.Triangles};
+
+                vbuffer.Bind();
+                vbuffer.UpdateVertexBuffer();
+                vbuffer.UpdateIndexBuffer();
+
+                do
+                {
+                    var b = dipQueue.Dequeue();
+                    int count = (dipQueue.Count > 0 ? dipQueue.Peek().startIndex : vbuffer.IndexOffset) - b.startIndex;
+                    GL.BindTexture(TextureTarget.Texture2D, b.texture);
+                    FlushBuffer(b.mode, b.startIndex, count);
+                    elementsCounter += count;
+                } while (dipQueue.Count > 0);
+                last = new SpriteBatch.BatchItem() { texture = -1, startIndex = -1, mode = BeginMode.Triangles };
             }
-			flip = false;
-			began = false;
+            flip = false;
+            began = false;
         }
-		
+
         public void End(Texture target, bool clear, bool use_back_buffer = false)
         {
             flip = true;
@@ -248,7 +248,8 @@ namespace Blueberry.Graphics
                     GL.Clear(ClearBufferMask.ColorBufferBit);
                 End();
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            } else
+            }
+            else
             {
                 if (framebuffer == -1)
                     GL.Ext.GenFramebuffers(1, out framebuffer);
@@ -260,20 +261,20 @@ namespace Blueberry.Graphics
                 GL.Ext.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             }
         }
-		
+
         BatchItem last;
-        
+
         private bool TryPush(int texId, BeginMode mode)
         {
-        	if(last.texture != texId || last.mode != mode)
-        	{
-        		last = new BatchItem(){ texture = texId, mode = mode, startIndex = vbuffer.IndexOffset};
-        		dipQueue.Enqueue(last);
-        		return true;
-        	}
-        	return false;
+            if (last.texture != texId || last.mode != mode)
+            {
+                last = new BatchItem() { texture = texId, mode = mode, startIndex = vbuffer.IndexOffset };
+                dipQueue.Enqueue(last);
+                return true;
+            }
+            return false;
         }
-        
+
         #region DrawTexture
 
         public unsafe void DrawTexture(Texture texture, float x, float y, float width, float height, RectangleF sourceRectangle, Color4 color,
@@ -325,9 +326,9 @@ namespace Blueberry.Graphics
             *(ind++) = offset + 2;
             *(ind++) = offset;
             *(ind++) = offset + 2;
-            *(ind++) = offset + 3;            
-            
-            
+            *(ind++) = offset + 3;
+
+
             *(vert++) = x + dx * cos - dy * sin;
             *(vert++) = y + dx * sin + dy * cos;
             *(vert++) = color.R;
@@ -336,7 +337,7 @@ namespace Blueberry.Graphics
             *(vert++) = color.A;
             *(vert++) = texCoordTL.X;
             *(vert++) = texCoordTL.Y;
-            	
+
             *(vert++) = x + (dx + width) * cos - dy * sin;
             *(vert++) = y + (dx + width) * sin + dy * cos;
             *(vert++) = color.R;
@@ -345,21 +346,21 @@ namespace Blueberry.Graphics
             *(vert++) = color.A;
             *(vert++) = texCoordBR.X;
             *(vert++) = texCoordTL.Y;
-            
-            *(vert++) =x + (dx + width) * cos - (dy + height) * sin;
+
+            *(vert++) = x + (dx + width) * cos - (dy + height) * sin;
             *(vert++) = y + (dx + width) * sin + (dy + height) * cos;
             *(vert++) = color.R;
             *(vert++) = color.G;
-            *(vert++) =color.B;
+            *(vert++) = color.B;
             *(vert++) = color.A;
             *(vert++) = texCoordBR.X;
             *(vert++) = texCoordBR.Y;
-            	
-            *(vert++) =x + dx * cos - (dy + height) * sin;
+
+            *(vert++) = x + dx * cos - (dy + height) * sin;
             *(vert++) = y + dx * sin + (dy + height) * cos;
             *(vert++) = color.R;
             *(vert++) = color.G;
-            *(vert++) =color.B;
+            *(vert++) = color.B;
             *(vert++) = color.A;
             *(vert++) = texCoordTL.X;
             *(vert++) = texCoordBR.Y;
@@ -416,44 +417,44 @@ namespace Blueberry.Graphics
         #region DrawLine
         public unsafe void DrawLine(float x1, float y1, float x2, float y2, float thickness, Color4 color)
         {
-        	TryPush(this.pixelTex, BeginMode.Triangles);
-            
-        	Vector2 dir = new Vector2(x2 - x1, y2 - y1);
-        	dir.NormalizeFast();
-        	Vector2 perp = dir.PerpendicularLeft;
-        	//perp.NormalizeFast();
-        	float hth = thickness / 2f;
-        	
-        	#region Add vertices
+            TryPush(this.pixelTex, BeginMode.Triangles);
+
+            Vector2 dir = new Vector2(x2 - x1, y2 - y1);
+            dir.NormalizeFast();
+            Vector2 perp = dir.PerpendicularLeft;
+            //perp.NormalizeFast();
+            float hth = thickness / 2f;
+
+            #region Add vertices
 
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
             int* ind = vbuffer.GetIndexPointerToFill(6);
             float* vert = vbuffer.GetVertexPointerToFill(4);
-            *(ind++) = offset; *(ind++) = offset+1; *(ind++) = offset+2;
-            *(ind++) = offset; *(ind++) = offset+2; *(ind++) = offset+3;
-            
-            *(vert++) = x1 + perp.X * hth; *(vert++) = y1 + perp.Y * hth; 
+            *(ind++) = offset; *(ind++) = offset + 1; *(ind++) = offset + 2;
+            *(ind++) = offset; *(ind++) = offset + 2; *(ind++) = offset + 3;
+
+            *(vert++) = x1 + perp.X * hth; *(vert++) = y1 + perp.Y * hth;
             *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
-            *(vert++) = 0; *(vert++) = 0; 
-			
-            *(vert++) = x2 + perp.X * hth; *(vert++) = y2 + perp.Y * hth; 
+            *(vert++) = 0; *(vert++) = 0;
+
+            *(vert++) = x2 + perp.X * hth; *(vert++) = y2 + perp.Y * hth;
             *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
-            *(vert++) = 0; *(vert++) = 0; 
-                       
-            *(vert++) = x2 - perp.X * hth; *(vert++) = y2 - perp.Y * hth; 
+            *(vert++) = 0; *(vert++) = 0;
+
+            *(vert++) = x2 - perp.X * hth; *(vert++) = y2 - perp.Y * hth;
             *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
-            *(vert++) = 0; *(vert++) = 0; 
-			
-            *(vert++) = x1 - perp.X * hth; *(vert++) = y1 - perp.Y * hth; 
+            *(vert++) = 0; *(vert++) = 0;
+
+            *(vert++) = x1 - perp.X * hth; *(vert++) = y1 - perp.Y * hth;
             *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
-            *(vert++) = 0; *(vert++) = 0; 
+            *(vert++) = 0; *(vert++) = 0;
 
             #endregion Add vertices
         }
 
         public void DrawLine(Vector2 start, Vector2 end, float thickness, Color4 color)
         {
-            DrawLine(start.X, start.Y, end.X, end.Y,thickness, color);
+            DrawLine(start.X, start.Y, end.X, end.Y, thickness, color);
         }
 
         public void DrawLine(Vector2 start, Vector2 end, Color4 color)
@@ -475,7 +476,7 @@ namespace Blueberry.Graphics
         {
             DrawLine(start.X, start.Y, start.X + direction.X * length, start.Y + direction.Y * length, thickness, color);
         }
-		
+
         #endregion DrawLine
 
         #region FillPolygon
@@ -530,9 +531,9 @@ namespace Blueberry.Graphics
             float sin = (float)Math.Sin(rotation);
             float cos = (float)Math.Cos(rotation);
 
-            int* ind = vbuffer.GetIndexPointerToFill(3 + (points.Count()-3)*3);
+            int* ind = vbuffer.GetIndexPointerToFill(3 + (points.Count() - 3) * 3);
             float* vert = vbuffer.GetVertexPointerToFill(points.Count());
-            for (int i = 0; i < points.Count(); i++) 
+            for (int i = 0; i < points.Count(); i++)
             {
                 *(vert++) = x + points.ElementAt(i).X * cos * scale - points.ElementAt(i).Y * sin * scale;
                 *(vert++) = y + points.ElementAt(i).X * sin * scale + points.ElementAt(i).Y * cos * scale;
@@ -540,14 +541,14 @@ namespace Blueberry.Graphics
                 *(vert++) = 0; *(vert++) = 0;
             }
             *(ind++) = offset;
-            *(ind++) = offset+1;
-            *(ind++) = offset+2;
+            *(ind++) = offset + 1;
+            *(ind++) = offset + 2;
 
             for (int i = 3; i < points.Count(); i++)
-            {              
+            {
                 *(ind++) = offset;
-            	*(ind++) = offset+i-1;
-            	*(ind++) = offset+i;
+                *(ind++) = offset + i - 1;
+                *(ind++) = offset + i;
             }
 
             #endregion Add vertices
@@ -701,10 +702,10 @@ namespace Blueberry.Graphics
 
                                 x + (dx + width) * cos - dy * sin, y + (dx + width) * sin + dy * cos,
                                 color.R, color.G, color.B, color.A, 0, 0,
-                                
+
                                 x + (dx + width) * cos - (dy + height) * sin, y + (dx + width) * sin + (dy + height) * cos,
                                 color.R, color.G, color.B, color.A, 0, 0,
-                                
+
                                 x + dx * cos - (dy + height) * sin, y + dx * sin + (dy + height) * cos,
                                 color.R, color.G, color.B, color.A, 0, 0);
 
@@ -760,13 +761,13 @@ namespace Blueberry.Graphics
             vbuffer.AddIndices(offset, offset + 1, offset + 1, offset + 2, offset + 2, offset + 3, offset + 3, offset);
             vbuffer.AddVertices(4, x + dx * cos - dy * sin, y + dx * sin + dy * cos,
                                 color.R, color.G, color.B, color.A, 0, 0,
-                                
+
                                 x + (dx + width) * cos - dy * sin, y + (dx + width) * sin + dy * cos,
                                 color.R, color.G, color.B, color.A, 0, 0,
-                                
+
                                 x + (dx + width) * cos - (dy + height) * sin, y + (dx + width) * sin + (dy + height) * cos,
                                 color.R, color.G, color.B, color.A, 0, 0,
-                                
+
                                 x + dx * cos - (dy + height) * sin, y + dx * sin + (dy + height) * cos,
                                 color.R, color.G, color.B, color.A, 0, 0);
 
@@ -880,12 +881,12 @@ namespace Blueberry.Graphics
 
         public void OutlineEllipse(float x, float y, float xRadius, float yRadius, Color4 color, float thickness, int vertices)
         {
-            
+
             if (vertices < 3 || vertices > 360)
                 throw new ArgumentException("Vertices must be in range from 3 to 360", "vertices");
 
             TryPush(this.pixelTex, BeginMode.Lines);
-            
+
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
 
             float degInRad;
@@ -996,7 +997,7 @@ namespace Blueberry.Graphics
                 {
                     //normal character
                     if (c != ' ' && font.fontData.CharSetMapping.ContainsKey(c))
-                        RenderGlyph(font, c, x, y, xOffset, yOffset, color,rotation, scale, flipHorizontally, flipVertically);
+                        RenderGlyph(font, c, x, y, xOffset, yOffset, color, rotation, scale, flipHorizontally, flipVertically);
 
                     if (font.IsMonospacingActive)
                         xOffset += font.MonoSpaceWidth;
@@ -1035,7 +1036,6 @@ namespace Blueberry.Graphics
             PrintText(font, text, position.X, position.Y, color, rotation, scale, xOrigin, yOrigin, flipHorizontally, flipVertically);
         }
 
-        //This overload allows justification, but it is quite slow.. maybe) Recomended for use only in case, when justification is necessary
         public void PrintText(BitmapFont font, string text,
             float x, float y, float width, bool justify,
             Color4 color,
@@ -1046,8 +1046,21 @@ namespace Blueberry.Graphics
             if (font == null)
                 throw new ArgumentException("font");
 
-            float maxMeasuredWidth = 0f;
             ProcessedText processedText = font.ProcessText(text, width, justify);
+            PrintText(font, processedText, x, y, color, rotation, scale, xOrigin, yOrigin, flipHorizontally, flipVertically);
+        }
+        //This overload allows justification, but it is quite slow.. maybe) Recomended for use only in case, when justification is necessary
+        public void PrintText(BitmapFont font, ProcessedText processedText,
+            float x, float y,
+            Color4 color,
+            float rotation = 0.0f, float scale = 1.0f,
+            float xOrigin = 0.5f, float yOrigin = 0.5f,
+            bool flipHorizontally = false, bool flipVertically = false)
+        {
+            if (font == null)
+                throw new ArgumentException("font");
+
+            float maxMeasuredWidth = 0f;
             float maxWidth = processedText.maxWidth;
 
             float xOffset = 0f;
@@ -1059,7 +1072,7 @@ namespace Blueberry.Graphics
                 node.LengthTweak = 0f;  //reset tweaks
 
             yOffset -= yOrigin * size.Height;
-            if (justify)
+            if (processedText.justify)
             {
                 font.JustifyLine(nodeList.Head, maxWidth);
                 xOffset -= (int)(xOrigin * maxWidth);
@@ -1108,7 +1121,7 @@ namespace Blueberry.Graphics
 
                     if (node.Next != null)
                     {
-                        if (justify)
+                        if (processedText.justify)
                         {
                             font.JustifyLine(node.Next, maxWidth);
                             xOffset -= (int)(xOrigin * maxWidth);
@@ -1197,7 +1210,7 @@ namespace Blueberry.Graphics
                 tx2 = tx1;
                 tx1 = temp;
             }
-            
+
             float dx = -(xOrigin * (glyph.rect.Width + (font.IsMonospacingActive ? ((font.MonoSpaceWidth - glyph.rect.Width) / 2) : 0))) * scale;
             float dy = -yOrigin * glyph.rect.Height * scale;
             float sin = (float)Math.Sin(rotation);
@@ -1205,32 +1218,32 @@ namespace Blueberry.Graphics
             float width = glyph.rect.Width * scale;
             float height = glyph.rect.Height * scale;
 
-                        int* ind = vbuffer.GetIndexPointerToFill(6);
+            int* ind = vbuffer.GetIndexPointerToFill(6);
             float* vert = vbuffer.GetVertexPointerToFill(4);
-            
+
             *(ind++) = offset;
             *(ind++) = offset + 1;
             *(ind++) = offset + 2;
             *(ind++) = offset;
             *(ind++) = offset + 2;
-            *(ind++) = offset + 3;            
-            
+            *(ind++) = offset + 3;
+
             *(vert++) = x + dx * cos - dy * sin;
             *(vert++) = y + dx * sin + dy * cos;
             *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
             *(vert++) = tx1; *(vert++) = ty1;
-                     	
+
             *(vert++) = x + (dx + width) * cos - dy * sin;
             *(vert++) = y + (dx + width) * sin + dy * cos;
             *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
             *(vert++) = tx2; *(vert++) = ty1;
-                       
-            *(vert++) =x + (dx + width) * cos - (dy + height) * sin;
+
+            *(vert++) = x + (dx + width) * cos - (dy + height) * sin;
             *(vert++) = y + (dx + width) * sin + (dy + height) * cos;
             *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
             *(vert++) = tx2; *(vert++) = ty2;
-                       	
-            *(vert++) =x + dx * cos - (dy + height) * sin;
+
+            *(vert++) = x + dx * cos - (dy + height) * sin;
             *(vert++) = y + dx * sin + (dy + height) * cos;
             *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
             *(vert++) = tx1; *(vert++) = ty2;
@@ -1272,55 +1285,57 @@ namespace Blueberry.Graphics
             float dy = (yOffset + glyph.yOffset) * scale;
             float sin = (float)Math.Sin(rotation);
             float cos = (float)Math.Cos(rotation);
-            float width = glyph.rect.Width *scale;
-            float height = glyph.rect.Height *scale;
-            
+            float width = glyph.rect.Width * scale;
+            float height = glyph.rect.Height * scale;
+
             int* ind = vbuffer.GetIndexPointerToFill(6);
             float* vert = vbuffer.GetVertexPointerToFill(4);
-            
+
             *(ind++) = offset;
             *(ind++) = offset + 1;
             *(ind++) = offset + 2;
             *(ind++) = offset;
             *(ind++) = offset + 2;
-            *(ind++) = offset + 3;            
-            
+            *(ind++) = offset + 3;
+
             *(vert++) = x + dx * cos - dy * sin; *(vert++) = y + dx * sin + dy * cos;
             *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
             *(vert++) = tx1; *(vert++) = ty1;
-            
+
             *(vert++) = x + (dx + width) * cos - dy * sin;
             *(vert++) = y + (dx + width) * sin + dy * cos;
             *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
-            *(vert++) = tx2;*(vert++) = ty1;
-            
-            *(vert++) =x + (dx + width) * cos - (dy + height) * sin;
+            *(vert++) = tx2; *(vert++) = ty1;
+
+            *(vert++) = x + (dx + width) * cos - (dy + height) * sin;
             *(vert++) = y + (dx + width) * sin + (dy + height) * cos;
             *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
             *(vert++) = tx2; *(vert++) = ty2;
-            
-            *(vert++) =x + dx * cos - (dy + height) * sin;
+
+            *(vert++) = x + dx * cos - (dy + height) * sin;
             *(vert++) = y + dx * sin + (dy + height) * cos;
             *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
             *(vert++) = tx1; *(vert++) = ty2;
         }
-        
+
         #endregion PrintText
-		
-		string IDiagnosable.DebugName {
-			get {
-				return "SpriteBatch";
-			}
-		}
-		
-		string IDiagnosable.DebugInfo(int i)
-		{
-			int r = this.GetProcessedElementsCount();
-			switch (i)
-			{
-				case 0: return "Elements: " + r;
-				default: return ";";
-			}
-		}
+
+        string IDiagnosable.DebugName
+        {
+            get
+            {
+                return "SpriteBatch";
+            }
+        }
+
+        string IDiagnosable.DebugInfo(int i)
+        {
+            int r = this.GetProcessedElementsCount();
+            switch (i)
+            {
+                case 0: return "Elements: " + r;
+                default: return ";";
+            }
+        }
     }
 }

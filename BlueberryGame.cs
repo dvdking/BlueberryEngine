@@ -18,7 +18,7 @@ namespace Blueberry
 	public class BlueberryGame:IDisposable
 	{
 		private static BlueberryGame _current;
-		internal static BlueberryGame CurrentGame{get {return _current;}}
+		public static BlueberryGame CurrentGame{get {return _current;}}
 		
 		private GameWindow _window;
 		protected KeyboardDevice Keyboard{get{return _window.Keyboard;}}
@@ -52,21 +52,33 @@ namespace Blueberry
 		
 		public GameFrame CurrentFrame {get{return _currentFrame;} set {_nextFrame = value;}}
 		
-		public BlueberryGame(int width, int height, string name, bool fullscreen, double contextVersion)
+		public BlueberryGame(int width, int height, string name, bool fullscreen, double contextVersion = 0)
 		{
 			_current = this;
-			int major = (int)contextVersion;
-			int minor = (int)((contextVersion - major)*10);
-			_window = new GameWindow(width, height, 
-			                         GraphicsMode.Default, name, 
-			                         fullscreen ? GameWindowFlags.Fullscreen : GameWindowFlags.Default,
-			                         
-			                         DisplayDevice.Default,major, minor, 
+            if (contextVersion == 0)
+            {
+                int major = (int)contextVersion;
+                int minor = (int)((contextVersion - major) * 10);
+                _window = new GameWindow(width, height,
+                                         GraphicsMode.Default, name,
+                                         fullscreen ? GameWindowFlags.Fullscreen : GameWindowFlags.Default,
+                                         DisplayDevice.Default);
+            }
+            else
+            {
+                int major = (int)contextVersion;
+                int minor = (int)((contextVersion - major) * 10);
+                _window = new GameWindow(width, height,
+                                         GraphicsMode.Default, name,
+                                         fullscreen ? GameWindowFlags.Fullscreen : GameWindowFlags.Default,
+
+                                         DisplayDevice.Default, major, minor,
 #if DEBUG
-			                         GraphicsContextFlags.Default);
+                                        GraphicsContextFlags.Default);
 #else
 									 GraphicsContextFlags.ForwardCompatible);
 #endif
+            }
 #if DEBUG
 			new DiagnosticsCenter();
 #endif
@@ -141,6 +153,10 @@ namespace Blueberry
 				if(_currentFrame != null)
 					_currentFrame.Unload();
 				_currentFrame = _nextFrame;
+                _currentFrame._keyboard = Keyboard;
+                _currentFrame._mouse = Mouse;
+                _currentFrame._gamepad = Gamepad;
+                _currentFrame._gamepads = Gamepads;
 				_currentFrame.Load();
 				_nextFrame = null;
 			}
@@ -181,6 +197,8 @@ namespace Blueberry
 		}
 		public void Dispose()
 		{
+            if (_currentFrame != null)
+                _currentFrame.Unload();
 			if(SpriteBatch.HasInstance)
 				SpriteBatch.Instance.Dispose();
 			if(AudioManager.HasInstance)
