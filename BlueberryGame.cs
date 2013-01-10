@@ -30,10 +30,10 @@ namespace Blueberry
 		GamepadDevice[] _gamepads;
 		GamepadDevice _gamepad;
 		
-		public bool CursorVisible
-		{
-			get {return _window.CursorVisible; }
-		}
+        //public bool CursorVisible
+        //{
+        //    get {return _window.CursorVisible; }
+        //}
 		public VSyncMode VSync
 		{
 			get {return _window.VSync;}
@@ -44,7 +44,6 @@ namespace Blueberry
 			get{ return _window; }
 		}
 		
-		internal Capabilities capabilities;
 		int _framebuffer = -1;
 		
 		GameFrame _currentFrame;
@@ -94,12 +93,12 @@ namespace Blueberry
 			_window.RenderFrame += (a, b)=>Render((float)b.Time);
 			_window.Load += (a, b)=>Load();
 			
-			capabilities.Test();
-			if (capabilities.Framebuffers == GLExtensionSupport.Core)
+			Capabilities.Test();
+			if (Capabilities.Framebuffers == GLExtensionSupport.Core)
             {
                 GL.GenFramebuffers(1, out _framebuffer);
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            } else if (capabilities.Framebuffers == GLExtensionSupport.Extension)
+            } else if (Capabilities.Framebuffers == GLExtensionSupport.Extension)
             {
                 GL.Ext.GenFramebuffers(1, out _framebuffer);
                 GL.Ext.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
@@ -119,14 +118,14 @@ namespace Blueberry
         {
             if (target == null)
             {
-                if(capabilities.Framebuffers == GLExtensionSupport.Core)
+                if (Capabilities.Framebuffers == GLExtensionSupport.Core)
                     GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
                 else
                     GL.Ext.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             }
             else
             {
-                if(capabilities.Framebuffers == GLExtensionSupport.Core)
+                if (Capabilities.Framebuffers == GLExtensionSupport.Core)
                 {
                     GL.BindFramebuffer(FramebufferTarget.Framebuffer, _framebuffer);
                     GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, target.ID, 0);
@@ -205,7 +204,7 @@ namespace Blueberry
 				AudioManager.Instance.Dispose();
 			if (_framebuffer != -1)
             {
-                if(capabilities.Framebuffers == GLExtensionSupport.Core)
+                if(Capabilities.Framebuffers == GLExtensionSupport.Core)
                     GL.DeleteFramebuffers(1, ref _framebuffer);
                 else
                     GL.Ext.DeleteFramebuffers(1, ref _framebuffer);

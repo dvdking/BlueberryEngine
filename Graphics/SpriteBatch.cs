@@ -238,7 +238,7 @@ namespace Blueberry.Graphics
                 GL.CopyTexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 0, 0, target.Size.Width, target.Size.Height, 0);
                 return;
             }
-            if (BlueberryGame.CurrentGame.capabilities.Framebuffers == GLExtensionSupport.Core)
+            if (Capabilities.Framebuffers == GLExtensionSupport.Core)
             {
                 if (framebuffer == -1)
                     GL.GenFramebuffers(1, out framebuffer);
