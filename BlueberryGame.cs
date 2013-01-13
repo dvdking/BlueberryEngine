@@ -28,7 +28,6 @@ namespace Blueberry
 		protected GamepadDevice Gamepad{get{return _gamepads[0];}}
 		
 		GamepadDevice[] _gamepads;
-		GamepadDevice _gamepad;
 		
         //public bool CursorVisible
         //{
@@ -84,7 +83,6 @@ namespace Blueberry
 #if (WAV || OGG)
             new AudioManager(16, 8, 4096, true);
 #endif
-			_gamepad = new GamepadDevice(UserIndex.Any);
 			_gamepads = new GamepadDevice[4];
 			for (int i = 0; i < 4; i++) 
 				_gamepads[i] = new GamepadDevice((UserIndex)i);
@@ -145,6 +143,8 @@ namespace Blueberry
         }
 		protected virtual void Update(float dt)
 		{
+            Gamepad.Update(dt);
+            
 			if(_currentFrame != null)
 				_currentFrame.Update(dt);
 			if(_nextFrame != null)

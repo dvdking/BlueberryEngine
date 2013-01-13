@@ -101,7 +101,7 @@ namespace Blueberry.Input
             ThumbstickState old_r = RightStick;
 
             // If not connected, nothing to update
-            if (Connected) return;
+            if (!Connected) return;
 
             if (_vibrationTime > _elapsed)
             {

@@ -23,7 +23,7 @@
     <DebugType>Full</DebugType>
     <Optimize>True</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;WAV;</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;WAV;WINDOWS;OGG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -37,7 +37,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>True</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;WAV;</DefineConstants>
+    <DefineConstants>TRACE;WAV;WINDOWS;OGG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -77,6 +77,27 @@
     <Compile Include="Audio\AudioChannel.cs" />
     <Compile Include="Audio\AudioClip.cs" />
     <Compile Include="Audio\AudioManager.cs" />
+    <Compile Include="Audio\NVorbis\ACache.cs" />
+    <Compile Include="Audio\NVorbis\DataPacket.cs" />
+    <Compile Include="Audio\NVorbis\Huffman.cs" />
+    <Compile Include="Audio\NVorbis\IPacketProvider.cs" />
+    <Compile Include="Audio\NVorbis\IVorbisStreamStatus.cs" />
+    <Compile Include="Audio\NVorbis\Mdct.cs" />
+    <Compile Include="Audio\NVorbis\Ogg\OggContainerReader.cs" />
+    <Compile Include="Audio\NVorbis\Ogg\OggPacket.cs" />
+    <Compile Include="Audio\NVorbis\Ogg\OggPacketReader.cs" />
+    <Compile Include="Audio\NVorbis\Ogg\OggPageFlags.cs" />
+    <Compile Include="Audio\NVorbis\Ogg\ThreadSafeStream.cs" />
+    <Compile Include="Audio\NVorbis\RingBuffer.cs" />
+    <Compile Include="Audio\NVorbis\Utils.cs" />
+    <Compile Include="Audio\NVorbis\VorbisCodebook.cs" />
+    <Compile Include="Audio\NVorbis\VorbisFloor.cs" />
+    <Compile Include="Audio\NVorbis\VorbisMapping.cs" />
+    <Compile Include="Audio\NVorbis\VorbisMode.cs" />
+    <Compile Include="Audio\NVorbis\VorbisReader.cs" />
+    <Compile Include="Audio\NVorbis\VorbisResidue.cs" />
+    <Compile Include="Audio\NVorbis\VorbisStreamDecoder.cs" />
+    <Compile Include="Audio\NVorbis\VorbisTime.cs" />
     <Compile Include="Audio\WavAudioReader.cs" />
     <Compile Include="BlueberryGame.cs" />
     <Compile Include="Capabilities.cs" />
@@ -155,7 +176,17 @@
     <Compile Include="Audio\OggAudioReader.cs" />
     <Compile Include="Audio\AudioHelper.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="OpenAL32.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="OpenAL64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="xinput1_3.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
