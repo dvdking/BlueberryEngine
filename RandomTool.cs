@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using System.Drawing;
+using OpenTK;
 using OpenTK.Graphics;
 using System;
 
@@ -23,6 +24,11 @@ namespace Blueberry
         public static int NextInt()
         {
             return random.Next();
+        }
+
+        public static int NextInt(Range range)
+        {
+            return random.Next((int)range.Minimum, (int)range.Maximum);
         }
 
         public static char NextChoice(params char[] objects)
@@ -51,6 +57,11 @@ namespace Blueberry
         public static byte NextByte(byte min, byte max)
         {
             return (byte)random.Next(min, max);
+        }
+
+        public static byte NextByte(Range range)
+        {
+            return (byte)NextInt(range);
         }
 
         public static double NextDouble()
@@ -92,13 +103,21 @@ namespace Blueberry
         {
             return random.NextDouble() <= 0.5 ? (sbyte)1 : (sbyte)-1;
         }
-        static public Color4 NextColor(ColourRange range)
+        static public Color4 NextColor4(ColourRange range)
         {
             return new Color4(RandomTool.NextSingle(range.Red), RandomTool.NextSingle(range.Green), RandomTool.NextSingle(range.Blue), 1f);
         }
-        static public Color4 NextColor()
+        static public Color4 NextColor4()
         {
             return new Color4(RandomTool.NextSingle(), RandomTool.NextSingle(), RandomTool.NextSingle(), 1f);
+        }
+        static public Color NextColor()
+        {
+            return Color.FromArgb(255, RandomTool.NextByte(), RandomTool.NextByte(), RandomTool.NextByte());
+        }
+        static public Color NextColor(ColourRange range)
+        {
+            return Color.FromArgb(255, RandomTool.NextByte(range.Red), RandomTool.NextByte(range.Green), RandomTool.NextByte(range.Blue));
         }
         static public Vector2 NextUnitVector2()
         {
