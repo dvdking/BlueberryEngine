@@ -29,7 +29,7 @@ namespace Blueberry.Graphics
 
         private static SpriteBatch instance;
 
-        public static SpriteBatch Instance
+        public static SpriteBatch Please
         {
             get
             {
@@ -321,53 +321,34 @@ namespace Blueberry.Graphics
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
             int* ind = vbuffer.GetIndexPointerToFill(6);
             float* vert = vbuffer.GetVertexPointerToFill(4);
-            *(ind++) = offset;
-            *(ind++) = offset + 1;
-            *(ind++) = offset + 2;
-            *(ind++) = offset;
-            *(ind++) = offset + 2;
-            *(ind++) = offset + 3;
+
+            *(ind++) = offset; *(ind++) = offset + 1; *(ind++) = offset + 2;
+            *(ind++) = offset; *(ind++) = offset + 2; *(ind++) = offset + 3;
 
 
             *(vert++) = x + dx * cos - dy * sin;
             *(vert++) = y + dx * sin + dy * cos;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) = color.B;
-            *(vert++) = color.A;
-            *(vert++) = texCoordTL.X;
-            *(vert++) = texCoordTL.Y;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = texCoordTL.X; *(vert++) = texCoordTL.Y;
 
             *(vert++) = x + (dx + width) * cos - dy * sin;
             *(vert++) = y + (dx + width) * sin + dy * cos;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) = color.B;
-            *(vert++) = color.A;
-            *(vert++) = texCoordBR.X;
-            *(vert++) = texCoordTL.Y;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = texCoordBR.X; *(vert++) = texCoordTL.Y;
 
             *(vert++) = x + (dx + width) * cos - (dy + height) * sin;
             *(vert++) = y + (dx + width) * sin + (dy + height) * cos;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) = color.B;
-            *(vert++) = color.A;
-            *(vert++) = texCoordBR.X;
-            *(vert++) = texCoordBR.Y;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = texCoordBR.X; *(vert++) = texCoordBR.Y;
 
             *(vert++) = x + dx * cos - (dy + height) * sin;
             *(vert++) = y + dx * sin + (dy + height) * cos;
-            *(vert++) = color.R;
-            *(vert++) = color.G;
-            *(vert++) = color.B;
-            *(vert++) = color.A;
-            *(vert++) = texCoordTL.X;
-            *(vert++) = texCoordBR.Y;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = texCoordTL.X; *(vert++) = texCoordBR.Y;
 
             #endregion Add vertices
         }
-
+        #region Overloads
         public void DrawTexture(Texture texture, float x, float y, RectangleF sourceRectangle, Color4 color,
                                 float rotation = 0.0f, float xOrigin = 0.5f, float yOrigin = 0.5f, float xScale = 1, float yScale = 1,
                                 bool flipHorizontally = false, bool flipVertically = false)
@@ -411,7 +392,7 @@ namespace Blueberry.Graphics
         {
             DrawTexture(texture, destinationRectangle.X, destinationRectangle.Y, destinationRectangle.Width, destinationRectangle.Height, RectangleF.Empty, color);
         }
-
+        #endregion
         #endregion DrawTexture
 
         #region DrawLine
@@ -540,11 +521,8 @@ namespace Blueberry.Graphics
                 *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
                 *(vert++) = 0; *(vert++) = 0;
             }
-            *(ind++) = offset;
-            *(ind++) = offset + 1;
-            *(ind++) = offset + 2;
-
-            for (int i = 3; i < points.Count(); i++)
+            
+            for (int i = 2; i < points.Count(); i++)
             {
                 *(ind++) = offset;
                 *(ind++) = offset + i - 1;
@@ -554,7 +532,12 @@ namespace Blueberry.Graphics
             #endregion Add vertices
         }
 
-        public void FillRegularPolygon(int vertices, float size, Vector2 position, float rotation, Color4 color)
+        public void FillRegularPolygon(float x, float y, int vertices, float size, float rotation, Color4 color)
+        {
+            FillRegularPolygonInternal(x, y, vertices, size, size,rotation, color, color);
+        }
+
+        private unsafe void FillRegularPolygonInternal(float x, float y, int vertices, float xRadius, float yRadius, float rotation, Color4 outerColor, Color4 centralColor)
         {
             TryPush(this.pixelTex, BeginMode.Triangles);
 
@@ -562,23 +545,38 @@ namespace Blueberry.Graphics
                 throw new ArgumentException("Vertices must be in range from 3 to 360", "vertices");
 
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
-            int j = 0;
-            for (int i = 2; i < vertices + 1; i++, j += 3)
-                vbuffer.AddIndices(offset, offset + i - 1, offset + i);
-            vbuffer.AddIndices(offset, offset + vertices, offset + 1);
+            
+            int* ind = vbuffer.GetIndexPointerToFill(vertices * 3);
+            float* vert = vbuffer.GetVertexPointerToFill(vertices + 1);
 
-            vbuffer.AddVertex(position.X, position.Y,
-                                color.R, color.G, color.B, color.A, 0, 0);
+            *(vert++) = x; *(vert++) = y;
+            *(vert++) = centralColor.R;
+            *(vert++) = centralColor.G;
+            *(vert++) = centralColor.B;
+            *(vert++) = centralColor.A;
+            *(vert++) = 0; *(vert++) = 0;
+
             float degInRad;
-
-            for (int i = 1; i < vertices + 1; i++)
+            for (int i = 0; i < vertices; i++)
             {
-                degInRad = MathHelper.DegreesToRadians((360 / vertices) * (i - 1)) + rotation;
-
-                vbuffer.AddVertex(position.X + (float)(Math.Cos(degInRad) * size / 2),
-                                position.Y + (float)(Math.Sin(degInRad) * size / 2),
-                                color.R, color.G, color.B, color.A, 0, 0);
+                degInRad = MathHelper.DegreesToRadians((360 / vertices) * i) + rotation;
+                *(vert++) = x + (float)(Math.Cos(degInRad) * xRadius);
+                *(vert++) = y + (float)(Math.Sin(degInRad) * yRadius);
+                *(vert++) = outerColor.R;
+                *(vert++) = outerColor.G;
+                *(vert++) = outerColor.B;
+                *(vert++) = outerColor.A;
+                *(vert++) = 0; *(vert++) = 0;
             }
+            for (int i = 1; i < vertices; i++)
+            {
+                *(ind++) = offset;
+                *(ind++) = offset + i;
+                *(ind++) = offset + i + 1;
+            }
+            *(ind++) = offset;
+            *(ind++) = offset + vertices;
+            *(ind++) = offset + 1;
         }
 
         #endregion FillPolygon
@@ -625,66 +623,75 @@ namespace Blueberry.Graphics
             OutlinePolygon(points, 0, 0, 0, 1, color);
         }
 
-        public void OutlinePolygon(IEnumerable<Vector2> points, float x, float y, float rotation, float scale, Color4 color)
+        public unsafe void OutlinePolygon(IEnumerable<Vector2> points, float x, float y, float rotation, float scale, Color4 color)
         {
             TryPush(this.pixelTex, BeginMode.Triangles);
             #region Add vertices
 
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
+            int* ind = vbuffer.GetIndexPointerToFill(6);
+            float* vert = vbuffer.GetVertexPointerToFill(4);
 
             float sin = (float)Math.Sin(rotation);
             float cos = (float)Math.Cos(rotation);
-
-            vbuffer.AddVertex(x + points.ElementAt(0).X * cos * scale - points.ElementAt(0).Y * sin * scale,
-                              y + points.ElementAt(0).X * sin * scale + points.ElementAt(0).Y * cos * scale,
-                                color.R, color.G, color.B, color.A, 0, 0);
-
-            for (int i = 1; i < points.Count(); i++)
+            int count = points.Count();
+            foreach (var p in points)
             {
-                vbuffer.AddVertex(x + points.ElementAt(i).X * cos * scale - points.ElementAt(i).Y * sin * scale,
-                                  y + points.ElementAt(i).X * sin * scale + points.ElementAt(i).Y * cos * scale,
-                                color.R, color.G, color.B, color.A, 0, 0);
-
-                vbuffer.AddIndices(offset + i - 1, offset + i);
+                *(vert++) = x + p.X * cos * scale - p.Y * sin * scale;
+                *(vert++) = y + p.X * sin * scale + p.Y * cos * scale;
+                *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+                *(vert++) = 0; *(vert++) = 0;
             }
-            vbuffer.AddIndices(offset + points.Count() - 1, offset);
+            for (int i = 0; i < count; i++)
+            {
+                *(ind++) = offset + i;
+                *(ind++) = offset + i + 1;    
+            }
+
+            *(ind++) = offset + count - 1;
+            *(ind++) = offset;
 
             #endregion Add vertices
         }
 
-        public void OutlineRegularPolygon(int vertices, float size, float x, float y, float rotation, Color4 color)
+        private unsafe void OutlineRegularPolygonInternal(float x, float y, int vertices, float radiusX, float radiusY, float rotation, Color4 color)
         {
             TryPush(this.pixelTex, BeginMode.Lines);
             if (vertices < 3 || vertices > 360)
                 throw new ArgumentException("Vertices must be in range from 3 to 360", "vertices");
 
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
-            for (int i = 0; i < vertices - 1; i++)
-                vbuffer.AddIndices(offset + i, offset + i + 1);
-            vbuffer.AddIndices(offset + vertices - 1, offset);
+            int* ind = vbuffer.GetIndexPointerToFill(vertices * 2);
+            float* vert = vbuffer.GetVertexPointerToFill(vertices);
 
             float degInRad;
-
             for (int i = 0; i < vertices; i++)
             {
-                degInRad = MathHelper.DegreesToRadians((360 / vertices) * i);
-
-                vbuffer.AddVertex(x + (float)(Math.Cos(degInRad) * size / 2),
-                    y + (float)(Math.Sin(degInRad) * size / 2),
-                    color.R, color.G, color.B, color.A, 0, 0);
+                degInRad = MathHelper.DegreesToRadians((360 / vertices) * i) + rotation;
+                *(vert++) = x + (float)(Math.Cos(degInRad) * radiusX);
+                *(vert++) = y + (float)(Math.Sin(degInRad) * radiusY);
+                *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+                *(vert++) = 0; *(vert++) = 0;
             }
+            for (int i = 0; i < vertices - 1; i++)
+            {
+                *(ind++) = offset + i;
+                *(ind++) = offset + i + 1;
+            }
+            *(ind++) = offset + vertices - 1;
+            *(ind++) = offset;
         }
 
         public void OutlineRegularPolygon(int vertices, float size, Vector2 position, float rotation, Color4 color)
         {
-            OutlineRegularPolygon(vertices, size, position.X, position.Y, rotation, color);
+            OutlineRegularPolygonInternal(position.X, position.Y, vertices, size, size, rotation, color);
         }
 
         #endregion OutlinePolygon
 
         #region FillRectangle
 
-        public void FillRectangle(float x, float y, float width, float height, Color4 color, float rotation = 0.0f, float xOrigin = 0.0f, float yOrigin = 0.0f)
+        public unsafe void FillRectangle(float x, float y, float width, float height, Color4 color, float rotation = 0.0f, float xOrigin = 0.0f, float yOrigin = 0.0f)
         {
             TryPush(this.pixelTex, BeginMode.Triangles);
             #region Add vertices
@@ -693,21 +700,34 @@ namespace Blueberry.Graphics
             float cos = (float)Math.Cos(rotation);
             float dx = -xOrigin * width;
             float dy = -yOrigin * height;
-
+            
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
-            vbuffer.AddIndices(offset, offset + 1, offset + 2, offset, offset + 2, offset + 3);
+            int* ind = vbuffer.GetIndexPointerToFill(6);
+            float* vert = vbuffer.GetVertexPointerToFill(4);
 
-            vbuffer.AddVertices(4, x + dx * cos - dy * sin, y + dx * sin + dy * cos,
-                                color.R, color.G, color.B, color.A, 0, 0,
+            *(ind++) = offset; *(ind++) = offset + 1; *(ind++) = offset + 2;
+            *(ind++) = offset; *(ind++) = offset + 2; *(ind++) = offset + 3;
 
-                                x + (dx + width) * cos - dy * sin, y + (dx + width) * sin + dy * cos,
-                                color.R, color.G, color.B, color.A, 0, 0,
 
-                                x + (dx + width) * cos - (dy + height) * sin, y + (dx + width) * sin + (dy + height) * cos,
-                                color.R, color.G, color.B, color.A, 0, 0,
+            *(vert++) = x + dx * cos - dy * sin;
+            *(vert++) = y + dx * sin + dy * cos;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = texCoordTL.X; *(vert++) = texCoordTL.Y;
 
-                                x + dx * cos - (dy + height) * sin, y + dx * sin + (dy + height) * cos,
-                                color.R, color.G, color.B, color.A, 0, 0);
+            *(vert++) = x + (dx + width) * cos - dy * sin;
+            *(vert++) = y + (dx + width) * sin + dy * cos;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = texCoordBR.X; *(vert++) = texCoordTL.Y;
+
+            *(vert++) = x + (dx + width) * cos - (dy + height) * sin;
+            *(vert++) = y + (dx + width) * sin + (dy + height) * cos;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = texCoordBR.X; *(vert++) = texCoordBR.Y;
+
+            *(vert++) = x + dx * cos - (dy + height) * sin;
+            *(vert++) = y + dx * sin + (dy + height) * cos;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = texCoordTL.X; *(vert++) = texCoordBR.Y;
 
             #endregion Add vertices
         }
@@ -746,7 +766,7 @@ namespace Blueberry.Graphics
 
         #region OutlineRectangle
 
-        public void OutlineRectangle(float x, float y, float width, float height, Color4 color, float thickness, float rotation, float xOrigin, float yOrigin)
+        public unsafe void OutlineRectangle(float x, float y, float width, float height, Color4 color, float thickness, float rotation, float xOrigin, float yOrigin)
         {
             TryPush(this.pixelTex, BeginMode.Lines);
 
@@ -758,19 +778,31 @@ namespace Blueberry.Graphics
             float dy = -yOrigin * height;
 
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
-            vbuffer.AddIndices(offset, offset + 1, offset + 1, offset + 2, offset + 2, offset + 3, offset + 3, offset);
-            vbuffer.AddVertices(4, x + dx * cos - dy * sin, y + dx * sin + dy * cos,
-                                color.R, color.G, color.B, color.A, 0, 0,
+            int* ind = vbuffer.GetIndexPointerToFill(6);
+            float* vert = vbuffer.GetVertexPointerToFill(4);
 
-                                x + (dx + width) * cos - dy * sin, y + (dx + width) * sin + dy * cos,
-                                color.R, color.G, color.B, color.A, 0, 0,
+            *(ind++) = offset; *(ind++) = offset + 1; *(ind++) = offset + 2;
+            *(ind++) = offset; *(ind++) = offset + 2; *(ind++) = offset + 3;
+            
+            *(vert++) = x + dx * cos - dy * sin;
+            *(vert++) = y + dx * sin + dy * cos;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = texCoordTL.X; *(vert++) = texCoordTL.Y;
 
-                                x + (dx + width) * cos - (dy + height) * sin, y + (dx + width) * sin + (dy + height) * cos,
-                                color.R, color.G, color.B, color.A, 0, 0,
+            *(vert++) = x + (dx + width) * cos - dy * sin;
+            *(vert++) = y + (dx + width) * sin + dy * cos;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = texCoordBR.X; *(vert++) = texCoordTL.Y;
 
-                                x + dx * cos - (dy + height) * sin, y + dx * sin + (dy + height) * cos,
-                                color.R, color.G, color.B, color.A, 0, 0);
+            *(vert++) = x + (dx + width) * cos - (dy + height) * sin;
+            *(vert++) = y + (dx + width) * sin + (dy + height) * cos;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = texCoordBR.X; *(vert++) = texCoordBR.Y;
 
+            *(vert++) = x + dx * cos - (dy + height) * sin;
+            *(vert++) = y + dx * sin + (dy + height) * cos;
+            *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
+            *(vert++) = texCoordTL.X; *(vert++) = texCoordBR.Y;
             #endregion Add vertices
         }
 
@@ -800,29 +832,7 @@ namespace Blueberry.Graphics
 
         public void FillEllipse(float x, float y, float xRadius, float yRadius, Color4 centralColor, Color4 outerColor, int vertices)
         {
-            TryPush(this.pixelTex, BeginMode.Triangles);
-
-            if (vertices < 3 || vertices > 360)
-                throw new ArgumentException("Vertices must be in range from 3 to 360", "vertices");
-
-            int offset = vbuffer.VertexOffset / vbuffer.Stride;
-
-            vbuffer.AddVertex(x, y, centralColor.R, centralColor.G, centralColor.B, centralColor.A, 0, 0);
-
-            float degInRad;
-
-            for (int i = 1; i <= vertices; i++)
-            {
-                degInRad = MathHelper.DegreesToRadians((360 / vertices) * (i - 1));
-
-                vbuffer.AddVertex(x + (float)(Math.Cos(degInRad) * xRadius),
-                    y + (float)(Math.Sin(degInRad) * yRadius),
-                    outerColor.R, outerColor.G, outerColor.B, outerColor.A, 0, 0);
-            }
-            int j = 0;
-            for (int i = 2; i < vertices + 1; i++, j += 3)
-                vbuffer.AddIndices(offset, offset + i - 1, offset + i);
-            vbuffer.AddIndices(offset, offset + vertices, offset + 1);
+            FillRegularPolygonInternal(x, y, vertices, xRadius, yRadius, 0, outerColor, centralColor);
         }
 
         public void FillEllipse(Vector2 position, float xRadius, float yRadius, Color4 centralColor, Color4 outerColor, int vertices)
@@ -881,28 +891,7 @@ namespace Blueberry.Graphics
 
         public void OutlineEllipse(float x, float y, float xRadius, float yRadius, Color4 color, float thickness, int vertices)
         {
-
-            if (vertices < 3 || vertices > 360)
-                throw new ArgumentException("Vertices must be in range from 3 to 360", "vertices");
-
-            TryPush(this.pixelTex, BeginMode.Lines);
-
-            int offset = vbuffer.VertexOffset / vbuffer.Stride;
-
-            float degInRad;
-
-            for (int i = 0; i < vertices; i++)
-            {
-                degInRad = MathHelper.DegreesToRadians((360 / vertices) * i);
-
-                vbuffer.AddVertex(x + (float)(Math.Cos(degInRad) * xRadius),
-                    y + (float)(Math.Sin(degInRad) * yRadius),
-                    color.R, color.G, color.B, color.A, 0, 0);
-            }
-
-            for (int i = 0; i < vertices - 1; i++)
-                vbuffer.AddIndices(offset + i, offset + i + 1);
-            vbuffer.AddIndices(offset + vertices - 1, offset);
+            OutlineRegularPolygonInternal(x, y, vertices, xRadius, yRadius, 0, color);
         }
 
         public void OutlineEllipse(Vector2 position, float xRadius, float yRadius, Color4 color, float thickness, int vertices)

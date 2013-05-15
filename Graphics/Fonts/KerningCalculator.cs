@@ -25,7 +25,6 @@ namespace Blueberry.Graphics.Fonts
 
             int worstCase = w1;
 
-            //TODO - offset startY, endY by yOffset1 so that lim1[j-yOffset1] can be written as lim1[j], will need another var for yOffset2
 
             for (int j = startY; j < endY; j++)
                 worstCase = Math.Min(worstCase, w1 - lim1[j - yOffset1].Max + lim2[j - yOffset2].Min);

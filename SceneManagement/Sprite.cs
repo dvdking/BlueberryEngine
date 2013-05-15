@@ -37,7 +37,7 @@ namespace Blueberry.SceneManagement
 
         public override void Draw(float dt)
         {
-            SpriteBatch.Instance.DrawTexture(tile.texture, position, tile.source, Color4.White);
+            SpriteBatch.Please.DrawTexture(tile.texture, position, tile.source, Color4.White);
         }
 
         public override void Update(float dt)

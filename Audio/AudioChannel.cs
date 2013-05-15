@@ -270,8 +270,7 @@ namespace Blueberry.Audio
                     }
                     else
                     {
-                        // TODO: There was an error reading the file
-                        throw new System.IO.IOException("Error reading or processing OGG file");
+                        throw new System.IO.IOException("Error reading or processing audio file");
                     }
                 }
             }

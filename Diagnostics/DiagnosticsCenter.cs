@@ -55,7 +55,7 @@ namespace Blueberry.Diagnostics
             upsGraph = new DebugGraph("UPS", new Rectangle(250, 100, 200, 60)) { ValuesByX = 20, ApproximateGraduation = 1 };
             fdtGraph = new DebugGraph("fdt", new Rectangle(250, 170, 200, 60)) { ValuesByX = 120, ApproximateGraduation = 0.01f };
             udtGraph = new DebugGraph("udt", new Rectangle(250, 240, 200, 60)) { ValuesByX = 120, ApproximateGraduation = 0.01f };
-            memoryGraph = new DebugGraph("mem", new Rectangle(250, 310, 200, 60)) { ValuesByX = 20, ApproximateGraduation = 1f };
+            memoryGraph = new DebugGraph("mb", new Rectangle(250, 310, 200, 60)) { ValuesByX = 20, ApproximateGraduation = 1f };
 
             graphs.Add(fpsGraph); graphs.Add(upsGraph); graphs.Add(fdtGraph); graphs.Add(udtGraph); graphs.Add(memoryGraph);
             Init();
@@ -116,7 +116,7 @@ namespace Blueberry.Diagnostics
             {
                 memoryCounter = 0;
                 memory = GC.GetTotalMemory(false);
-
+                GC.RegisterForFullGCNotification(10,10);
                 var usedHeap = (double)memory;
 
                 int order = 0;
@@ -193,25 +193,25 @@ namespace Blueberry.Diagnostics
                 fps_counter = 0;
                 fpsGraph.AddValue(fps);
             }
-            SpriteBatch.Instance.FrameCheckPoint();
+            SpriteBatch.Please.FrameCheckPoint();
             if (state == PanelState.hide) return;
 
-            SpriteBatch.Instance.Begin();
-            SpriteBatch.Instance.FillRectangle(drawArea, new OpenTK.Graphics.Color4(0, 0, 0, 0.7f));
+            SpriteBatch.Please.Begin();
+            SpriteBatch.Please.FillRectangle(drawArea, new OpenTK.Graphics.Color4(0, 0, 0, 0.7f));
 
             int start = 0, line = 0;
             for (int i = 0; i < buffer.Length; i++)
             {
                 if (buffer[i] == ';')
                 {
-                    SpriteBatch.Instance.PrintText(font, buffer.ToString(start, i - start), drawArea.Left + 10, drawArea.Top + 10 + line * font.LineSpacing, Color.White, 0, 1f);
+                    SpriteBatch.Please.PrintText(font, buffer.ToString(start, i - start), drawArea.Left + 10, drawArea.Top + 10 + line * font.LineSpacing, Color.White, 0, 1f);
                     line++;
                     start = ++i;
                 }
             }
             foreach (var item in graphs)
                 item.Draw(dt, drawArea.X, drawArea.Y);
-            SpriteBatch.Instance.End();
+            SpriteBatch.Please.End();
             
         }
 

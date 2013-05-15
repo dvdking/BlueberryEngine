@@ -124,19 +124,19 @@ namespace Blueberry.SceneManagement
             if (camera != null)
             {
                 float parallax = actors[0].ParallaxLayer;
-                SpriteBatch.Instance.Begin(camera.GetViewMatrix(parallax));
+                SpriteBatch.Please.Begin(camera.GetViewMatrix(parallax));
 
                 for (int i = 0; i < actors.Count; i++)
                 {
                     if (parallax != actors[i].ParallaxLayer)
                     {
-                        SpriteBatch.Instance.End();
+                        SpriteBatch.Please.End();
                         parallax = actors[i].ParallaxLayer;
-                        SpriteBatch.Instance.Begin(camera.GetViewMatrix(parallax));
+                        SpriteBatch.Please.Begin(camera.GetViewMatrix(parallax));
                     }
                     actors[i].Draw(dt);
                 }
-                SpriteBatch.Instance.End();
+                SpriteBatch.Please.End();
             }
         }
     }

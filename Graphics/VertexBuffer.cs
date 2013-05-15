@@ -121,7 +121,9 @@ namespace Blueberry.Graphics
             declarations.Clear();
             stride = 0;
         }
-        public void AddVertex(params float[] data)
+        //TODO: CRITICAL! This pice of code is completly crap and generates a lot of garbage. Replace calls in Spritebatch 
+        #region holly crap, do not use
+        /*public void AddVertex(params float[] data)
         {
             CheckForOverflowVertexBuffer();
             int n = data.Length;
@@ -147,8 +149,8 @@ namespace Blueberry.Graphics
             {
             	*(IndexData + ioffset++) = data[i];
             }
-        }
-
+        }*/
+        #endregion
         public void UpdateBuffer()
         {
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexDataBufferObject);

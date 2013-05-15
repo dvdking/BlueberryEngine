@@ -49,7 +49,9 @@ namespace Blueberry
 		GameFrame _nextFrame;
 		
 		public GameFrame CurrentFrame {get{return _currentFrame;} set {_nextFrame = value;}}
-		
+
+	    private float _totalTime;
+
 		public BlueberryGame(int width, int height, string name, bool fullscreen, double contextVersion = 0)
 		{
 			_current = this;
@@ -86,9 +88,9 @@ namespace Blueberry
 			_gamepads = new GamepadDevice[4];
 			for (int i = 0; i < 4; i++) 
 				_gamepads[i] = new GamepadDevice((UserIndex)i);
-			
-			_window.UpdateFrame += (a, b)=>Update((float)b.Time);
-			_window.RenderFrame += (a, b)=>Render((float)b.Time);
+			//_window.VSync = VSyncMode.On;
+			_window.UpdateFrame += InternalUpdate;
+			_window.RenderFrame += InternalRender;
 			_window.Load += (a, b)=>Load();
 			
 			Capabilities.Test();
@@ -141,12 +143,20 @@ namespace Blueberry
         {
         	
         }
-		protected virtual void Update(float dt)
+        protected virtual void Update(float delta, float total)
+        {
+            
+        }
+		internal virtual void InternalUpdate(object sender, FrameEventArgs e)
 		{
-            Gamepad.Update(dt);
+		    float delta = (float)e.Time;
+		    _totalTime += delta;
+
+            Gamepad.Update(delta);
             
 			if(_currentFrame != null)
-				_currentFrame.Update(dt);
+				_currentFrame.Update(delta);
+            
 			if(_nextFrame != null)
 			{
 				if(_currentFrame != null)
@@ -160,19 +170,26 @@ namespace Blueberry
 				_nextFrame = null;
 			}
 			#if DEBUG
-			DiagnosticsCenter.Instance.Update(dt);
+			DiagnosticsCenter.Instance.Update(delta);
 			if (Keyboard[Key.Tilde])
                 if (DiagnosticsCenter.Instance.Visible) DiagnosticsCenter.Instance.Hide();
                 else DiagnosticsCenter.Instance.Show();
             #endif
+            Update(delta, _totalTime);
 
 		}
-		protected virtual void Render(float dt)
+        protected virtual void Render(float delta)
+        {
+            
+        }
+		internal virtual void InternalRender(object sender, FrameEventArgs e)
 		{
+		    float delta = (float)e.Time;
 			if(_currentFrame != null)
-				_currentFrame.Render(dt);
+				_currentFrame.Render(delta);
+            Render(delta);
 			#if DEBUG
-			DiagnosticsCenter.Instance.Draw(dt);
+			DiagnosticsCenter.Instance.Draw(delta);
 			#endif
 			_window.SwapBuffers();
 		}
@@ -199,7 +216,7 @@ namespace Blueberry
             if (_currentFrame != null)
                 _currentFrame.Unload();
 			if(SpriteBatch.HasInstance)
-				SpriteBatch.Instance.Dispose();
+				SpriteBatch.Please.Dispose();
 			if(AudioManager.HasInstance)
 				AudioManager.Instance.Dispose();
 			if (_framebuffer != -1)
