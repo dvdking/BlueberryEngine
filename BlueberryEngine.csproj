@@ -57,15 +57,13 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="OpenTK, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependencies\OpenTK.dll</HintPath>
+    <Reference Include="OpenTK">
+      <HintPath>D:\Dev\opentk\Binaries\OpenTK\Release\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Animations\Animation.cs" />
@@ -101,6 +99,15 @@
     <Compile Include="Audio\WavAudioReader.cs" />
     <Compile Include="BlueberryGame.cs" />
     <Compile Include="Capabilities.cs" />
+    <Compile Include="ComponentModel\Component.cs" />
+    <Compile Include="ComponentModel\ComponentType.cs" />
+    <Compile Include="ComponentModel\ComponentTypeManager.cs" />
+    <Compile Include="ComponentModel\Entity.cs" />
+    <Compile Include="ComponentModel\EntityDefinition.cs" />
+    <Compile Include="ComponentModel\EntityManager.cs" />
+    <Compile Include="ComponentModel\IMessage.cs" />
+    <Compile Include="ComponentModel\RequireComponentAttribute.cs" />
+    <Compile Include="ComponentModel\SyncState.cs" />
     <Compile Include="Diagnostics\DebugGraph.cs" />
     <Compile Include="Diagnostics\DiagnosticsCenter.cs" />
     <Compile Include="Diagnostics\IDiagnosable.cs" />
@@ -187,6 +194,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
