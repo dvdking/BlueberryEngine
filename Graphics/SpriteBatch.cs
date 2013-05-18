@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
+//using System.Linq;
 using System.Text;
 using Blueberry.Diagnostics;
 using Blueberry.Graphics.Fonts;
@@ -277,7 +277,7 @@ namespace Blueberry.Graphics
 
         #region DrawTexture
 
-        public unsafe void DrawTexture(Texture texture, float x, float y, float width, float height, RectangleF sourceRectangle, Color4 color,
+        public unsafe void DrawTexture(Texture texture, float x, float y, float width, float height, RectangleF sourceRectangle, Color4 color = default(Color4),
                                 float rotation = 0.0f, float xOrigin = 0.5f, float yOrigin = 0.5f,
                                 bool flipHorizontally = false, bool flipVertically = false)
         {
@@ -511,18 +511,21 @@ namespace Blueberry.Graphics
 
             float sin = (float)Math.Sin(rotation);
             float cos = (float)Math.Cos(rotation);
+            int count = 0;
+            
+            float* vert;
 
-            int* ind = vbuffer.GetIndexPointerToFill(3 + (points.Count() - 3) * 3);
-            float* vert = vbuffer.GetVertexPointerToFill(points.Count());
-            for (int i = 0; i < points.Count(); i++)
+            foreach(var p in points)
             {
-                *(vert++) = x + points.ElementAt(i).X * cos * scale - points.ElementAt(i).Y * sin * scale;
-                *(vert++) = y + points.ElementAt(i).X * sin * scale + points.ElementAt(i).Y * cos * scale;
+                vert = vbuffer.GetVertexPointerToFill(1);
+                *(vert++) = x + p.X * cos * scale - p.Y * sin * scale;
+                *(vert++) = y + p.X * sin * scale + p.Y * cos * scale;
                 *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
                 *(vert++) = 0; *(vert++) = 0;
+                count++;
             }
-            
-            for (int i = 2; i < points.Count(); i++)
+            int* ind = vbuffer.GetIndexPointerToFill(3 + (count - 3) * 3);
+            for (int i = 2; i < count; i++)
             {
                 *(ind++) = offset;
                 *(ind++) = offset + i - 1;
@@ -629,19 +632,23 @@ namespace Blueberry.Graphics
             #region Add vertices
 
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
-            int* ind = vbuffer.GetIndexPointerToFill(6);
-            float* vert = vbuffer.GetVertexPointerToFill(4);
+            int count = 0;
+            
+            float* vert;
 
             float sin = (float)Math.Sin(rotation);
             float cos = (float)Math.Cos(rotation);
-            int count = points.Count();
+            
             foreach (var p in points)
             {
+                vert = vbuffer.GetVertexPointerToFill(1);
                 *(vert++) = x + p.X * cos * scale - p.Y * sin * scale;
                 *(vert++) = y + p.X * sin * scale + p.Y * cos * scale;
                 *(vert++) = color.R; *(vert++) = color.G; *(vert++) = color.B; *(vert++) = color.A;
                 *(vert++) = 0; *(vert++) = 0;
+                count++;
             }
+            int* ind = vbuffer.GetIndexPointerToFill((count + 1) * 2);
             for (int i = 0; i < count; i++)
             {
                 *(ind++) = offset + i;
