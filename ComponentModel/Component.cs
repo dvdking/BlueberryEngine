@@ -30,39 +30,7 @@ namespace Blueberry.ComponentModel
             return typeof (Component).IsAssignableFrom(type);
         }
 
-        /// <summary>
-        /// Helper method to create an instance of a specified type, and casting it to `Component`
-        /// </summary>
-        public static Component Create(Type type)
-        {
-            Component result = null;
-            try
-            {
-                result = Activator.CreateInstance(type) as Component;
-            }
-            catch (MissingMethodException)
-            {
-                throw new MissingMethodException(String.Format(
-                    "The component type '{0}' does not provide a parameter-less constructor.", type.ToString()));
-            }
 
-            return result;
-        }
-        public static Component Create<T>() where T: Component
-        {
-            Component result = null;
-            try
-            {
-                result = Activator.CreateInstance(typeof(T)) as Component;
-            }
-            catch (MissingMethodException)
-            {
-                throw new MissingMethodException(String.Format(
-                    "The component type does not provide a parameter-less constructor."));
-            }
-
-            return result;
-        }
 
         public static bool CanCreate(Type type)
         {
@@ -85,17 +53,17 @@ namespace Blueberry.ComponentModel
 
             Type type = GetType();
 
-            FindDependencies(type, _dependencies);
+            FindDependencies(type);
 
             while ((type = type.BaseType) != null)
             {
                 if (!CanDependOn(type))
                     break;
-                FindDependencies(type, _dependencies);
+                FindDependencies(type);
             }
         }
 
-        private void FindDependencies(Type type, Dictionary<FieldInfo, RequireComponentAttribute> deps)
+        private void FindDependencies(Type type)
         {
             FieldInfo[] fields = type.GetFields(
                 BindingFlags.Instance |
@@ -188,7 +156,7 @@ namespace Blueberry.ComponentModel
 
             if (dependency == null && attribute.Automatically)
             {
-                dependency = Create(componentType);
+                dependency = ComponentTypeManager.Please.Create(componentType);
 
                 if (dependency == null)
                     return;

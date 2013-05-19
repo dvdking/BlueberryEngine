@@ -41,7 +41,7 @@ namespace Blueberry.ComponentModel
 
             foreach (var definition in _components)
             {
-                var component = Component.Create(definition.Key);
+                var component = ComponentTypeManager.Please.Create(definition.Key);
                 foreach (var property in definition.Value)
                 {
                     property.Key.SetValue(component, property.Value, null);

@@ -58,7 +58,7 @@ namespace Blueberry.ComponentModel
 
                 if (_components.ContainsKey(ctype))
                     throw new ArgumentException("Component of given type already contains in entity or in add queue", "componentType");
-                Component component = Component.Create(componentType);
+                Component component = ComponentTypeManager.Please.Create(componentType);
                 _syncList[ctype] = component;
                 component.SyncState = SyncState.Add;
                 EntityManager.Please.AddToSync(this, SyncState.Refresh);
@@ -97,7 +97,7 @@ namespace Blueberry.ComponentModel
                     if (_components.ContainsKey(ctype))
                         throw new ArgumentException("Component of given type already contains in entity or in add queue",
                                                     "type");
-                    Component component = Component.Create(type);
+                    Component component = ComponentTypeManager.Please.Create(type);
                     _syncList[ctype] = component;
                     component.SyncState = SyncState.Add;
                 }
