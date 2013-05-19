@@ -99,12 +99,14 @@
     <Compile Include="Audio\WavAudioReader.cs" />
     <Compile Include="BlueberryGame.cs" />
     <Compile Include="Capabilities.cs" />
+    <Compile Include="ComponentModel\Aspect.cs" />
     <Compile Include="ComponentModel\Component.cs" />
     <Compile Include="ComponentModel\ComponentsPool.cs" />
     <Compile Include="ComponentModel\ComponentType.cs" />
     <Compile Include="ComponentModel\ComponentTypeManager.cs" />
     <Compile Include="ComponentModel\Entity.cs" />
     <Compile Include="ComponentModel\EntityDefinition.cs" />
+    <Compile Include="ComponentModel\EntityFilter.cs" />
     <Compile Include="ComponentModel\EntityManager.cs" />
     <Compile Include="ComponentModel\IMessage.cs" />
     <Compile Include="ComponentModel\RequireComponentAttribute.cs" />

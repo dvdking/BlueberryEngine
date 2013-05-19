@@ -64,6 +64,16 @@ namespace Blueberry.ComponentModel
 
             return componentType;
         }
+        public Type GetTypeOf(ComponentType ctype)
+        {
+            foreach (var pair in _registeredTypes)
+            {
+                if (ctype.Value == pair.Value)
+                    return pair.Key;
+            }
+            return null;
+        }
+
 
         private void CreatePool(ComponentType componentType, Type type)
         {

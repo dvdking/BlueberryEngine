@@ -214,6 +214,25 @@ namespace Blueberry.ComponentModel
             return component;
         }
 
+        public bool ContainsComponent(ComponentType type)
+        {
+            return _components.ContainsKey(type);
+        }
+
+        public bool ContainsComponent(Type type)
+        {
+            return _components.ContainsKey(ComponentTypeManager.Please.GetComponentTypeOf(type));
+        }
+
+        public IEnumerable<Component> GetComponents()
+        {
+            return _components.Values;
+        }
+        public IEnumerable<ComponentType> GetComponentTypes()
+        {
+            return _components.Keys;
+        }
+
         public void LeaveGroup(string groupName)
         {
             EntityManager.Please.RemoveFromGroup(this, groupName);
@@ -232,6 +251,28 @@ namespace Blueberry.ComponentModel
         public void ToggleGroup(string groupName)
         {
             EntityManager.Please.ToggleGroup(this, groupName);
+        }
+
+        public bool InGroup(string groupName)
+        {
+            return EntityManager.Please.InGroup(this, groupName);
+        }
+
+        public bool InEveryGroup(params string[] groups)
+        {
+            return EntityManager.Please.InEveryGroup(this, groups);
+        }
+        public bool InAnyGroup(params string[] groups)
+        {
+            return EntityManager.Please.InAnyGroup(this, groups);
+        }
+        public bool InEveryGroup(IEnumerable<string> groups)
+        {
+            return EntityManager.Please.InEveryGroup(this, groups);
+        }
+        public bool InAnyGroup(IEnumerable<string> groups)
+        {
+            return EntityManager.Please.InAnyGroup(this, groups);
         }
         public override int GetHashCode()
         {
