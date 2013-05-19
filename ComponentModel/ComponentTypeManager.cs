@@ -42,5 +42,14 @@ namespace Blueberry.ComponentModel
             }
             return new ComponentType(ctype);
         }
+        public Type GetTypeOf(ComponentType ctype)
+        {
+            foreach (var pair in _registeredTypes)
+            {
+                if (ctype.Value == pair.Value)
+                    return pair.Key;
+            }
+            return null;
+        }
     }
 }

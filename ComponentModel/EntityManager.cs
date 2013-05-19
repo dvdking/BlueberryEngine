@@ -29,7 +29,9 @@ namespace Blueberry.ComponentModel
         private HashSet<Entity> _syncList;
 
         private Dictionary<string, EntityDefinition> _definitions;
- 
+
+        private List<EntityFilter> _filters;
+
         public Entity CreateEntity(string name = "", params Component[] components)
         {
             Entity entity = new Entity(name);
@@ -68,6 +70,7 @@ namespace Blueberry.ComponentModel
             _entityGroups = new Dictionary<string, HashSet<Entity>>();
             _syncList = new HashSet<Entity>();
             _definitions = new Dictionary<string, EntityDefinition>();
+            _filters = new List<EntityFilter>();
         }
 
         public void CreateGroup(string name)
@@ -132,7 +135,34 @@ namespace Blueberry.ComponentModel
                 if (entity.SyncState.HasFlag(SyncState.Refresh))
                     entity.ResolveComponents();
             }
+            UpdateFilters(_syncList);
             _syncList.Clear();
+        }
+
+        public void ApplyFilter(EntityFilter filter)
+        {
+            _filters.Add(filter);
+            filter.FilterEntities(_globalStorage);
+        }
+
+        public void DisableFilter(EntityFilter filter)
+        {
+            _filters.Remove(filter);
+            filter.Clear();
+        }
+
+        private void UpdateFilters(Entity entity)
+        {
+            if (_filters.Count > 0)
+                foreach (var entityFilter in _filters)
+                    entityFilter.CheckEntity(entity);
+        }
+
+        private void UpdateFilters(IEnumerable<Entity> entities)
+        {
+            if (_filters.Count > 0)
+                foreach (var entityFilter in _filters)
+                    entityFilter.CheckEntities(entities);
         }
 
         public void AddToGroup(Entity entity, string groupName)
@@ -147,6 +177,7 @@ namespace Blueberry.ComponentModel
             else
                 group = _entityGroups[groupName];
             group.Add(entity);
+            UpdateFilters(entity);
         }
         
         public void RemoveFromGroup(Entity entity, string groupName)
@@ -155,12 +186,14 @@ namespace Blueberry.ComponentModel
             if (!_entityGroups.ContainsKey(groupName))
                 return;
             _entityGroups[groupName].Remove(entity);
+            UpdateFilters(entity);
         }
         
         public void RemoveFromAllGroups(Entity entity)
         {
             foreach (var entityGroup in _entityGroups.Values)
                 entityGroup.Remove(entity);
+            UpdateFilters(entity);
         }
         public void ToggleGroup(Entity entity, string groupName)
         {
@@ -181,6 +214,43 @@ namespace Blueberry.ComponentModel
                 else
                     group.Add(entity);
             }
+            UpdateFilters(entity);
+        }
+
+        public bool InGroup(Entity entity, string groupName)
+        {
+            HashSet<Entity> group;
+            if (_entityGroups.TryGetValue(groupName, out group))
+                return group.Contains(entity);
+            return false;
+        }
+        public bool InEveryGroup(Entity entity, params string[] groups)
+        {
+            return InEveryGroup(entity, groups);
+        }
+        public bool InAnyGroup(Entity entity, params string[] groups)
+        {
+            return InAnyGroup(entity, groups);
+        }
+        public bool InEveryGroup(Entity entity, IEnumerable<string> groups)
+        {
+            foreach (var groupName in groups)
+            {
+                HashSet<Entity> group;
+                if (_entityGroups.TryGetValue(groupName, out group))
+                    if (!group.Contains(entity)) return false;
+            }
+            return true;
+        }
+        public bool InAnyGroup(Entity entity, IEnumerable<string> groups)
+        {
+            foreach (var groupName in groups)
+            {
+                HashSet<Entity> group;
+                if (_entityGroups.TryGetValue(groupName, out group))
+                    if (group.Contains(entity)) return true;
+            }
+            return false;
         }
     }
 }
