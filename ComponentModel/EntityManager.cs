@@ -42,19 +42,29 @@ namespace Blueberry.ComponentModel
 
         public Entity CreateEntity(string name = "", params Type[] componentTypes)
         {
-            Entity entity = new Entity(name);
+            Entity entity = new Entity(name);//todo: entities pool
             entity.AddComponents(componentTypes);
             AddToSync(entity, SyncState.Add | SyncState.Refresh);
+            
             return entity;
         }
 
         public Entity CreateEntity(string name = "")
         {
-            Entity entity = new Entity(name);
+            Entity entity = new Entity(name); //todo: entities pool
             AddToSync(entity, SyncState.Add);
+            //todo: entities pool
             return entity;
         }
-        
+
+        public void UtilizeEntity(Entity entity)
+        {
+            var components = entity.GetComponents();
+            entity.ClearComponents();
+            AddToSync(entity, SyncState.Remove);
+           
+        }
+
         public void DefineEntity(string definitionName, EntityDefinition definition)
         {
             _definitions[definitionName] = definition;

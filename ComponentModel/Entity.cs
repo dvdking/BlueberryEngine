@@ -124,7 +124,8 @@ namespace Blueberry.ComponentModel
                 }
             }
         }
-        public void RemoveComponent(ComponentType type)
+
+        public Component RemoveComponent(ComponentType type)
         {
             Component component;
             if (_components.TryGetValue(type, out component))
@@ -132,23 +133,33 @@ namespace Blueberry.ComponentModel
                 _syncList.Add(type, component);
                 component.SyncState = SyncState.Remove;
             }
+            return component;
+        }
+        public void ClearComponents()
+        {
+            foreach (var component in _components)
+            {
+                RemoveComponent(component.Value);
+            }
         }
 
         public void ResolveComponents()
         {
             foreach (var component in _syncList.Values)
             {
-                if(component.SyncState == SyncState.Add)
+                switch (component.SyncState)
                 {
-                    _components.Add(component.CType, component);
-                    component.Owner = this;
-                    component.OnAdded();
-                }
-                else if (component.SyncState == SyncState.Remove)
-                {
-                    _components.Remove(component.CType);
-                    component.Owner = null;
-                    component.OnRemoved();
+                    case SyncState.Add:
+                        _components.Add(component.CType, component);
+                        component.Owner = this;
+                        component.OnAdded();
+                        break;
+                    case SyncState.Remove:
+                        _components.Remove(component.CType);
+                        component.Owner = null;
+                        component.OnRemoved();
+                        ComponentTypeManager.Please.UtilizeComponent(component);
+                        break;
                 }
             }
             _syncList.Clear();

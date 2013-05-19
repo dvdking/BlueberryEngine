@@ -45,6 +45,21 @@ namespace Blueberry.ComponentModel
             return pool.Create();
         }
 
+        public void UtilizeComponent(Component component)
+        {
+            var pool = BinarySearchOfPool(component.CType);
+            pool.Push(component);
+        }
+
+        public void UtilizeComponents(IEnumerable<Component> components)
+        {
+            foreach (var c in components)
+            {
+                var pool = BinarySearchOfPool(c.CType);
+                pool.Push(c);
+            }
+        }
+
         public ComponentType GetComponentTypeOf(Type type)
         {
             int ctype;
