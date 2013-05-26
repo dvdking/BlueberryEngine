@@ -255,7 +255,6 @@ namespace Blueberry.Audio
                 lock (readerMutex)
                 {
                     int samples = Reader.ReadSamples(SampleBuffer, 0, SampleBuffer.Length);
-
                     if (samples > 0)
                     {
                         // Buffer the segment
@@ -394,7 +393,6 @@ namespace Blueberry.Audio
                         retry:
                             // Buffer the next chunk
                             int readSamples = Reader.ReadSamples(SampleBuffer, 0, SampleBuffer.Length);
-
                             if (readSamples > 0)
                             {
                                 // TOOD: Queue multiple buffers here
@@ -402,7 +400,7 @@ namespace Blueberry.Audio
                                     CurrentRate);
                                 AL.SourceQueueBuffer(Source, removedBuffer);
                             }
-                            else if (readSamples == 0)
+                            if (readSamples < SampleBuffer.Length)
                             {
                                 // Reached the end of the file
                                 if(IsLooped)
