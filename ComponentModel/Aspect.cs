@@ -1,24 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 
 namespace Blueberry.ComponentModel
 {
     public class Aspect
     {
-        protected Aspect()
+        private Aspect()
         {
-            this.AnyTypesMap = new HashSet<ComponentType>();
-            this.ExcludeTypesMap = new HashSet<ComponentType>();
-            this.AllTypesMap = new HashSet<ComponentType>();
+            this.AnyTypesMap = 0;
+            this.ExcludeTypesMap = 0;
+            this.AllTypesMap = 0;
         }
 
-        protected HashSet<ComponentType> AllTypesMap { get; set; }
+        protected BigInteger AllTypesMap { get; set; }
 
-        protected HashSet<ComponentType> ExcludeTypesMap { get; set; }
+        protected BigInteger ExcludeTypesMap { get; set; }
 
-        protected HashSet<ComponentType> AnyTypesMap { get; set; }
+        protected BigInteger AnyTypesMap { get; set; }
 
         public static Aspect All(params Type[] types)
         {
@@ -42,42 +43,32 @@ namespace Blueberry.ComponentModel
 
         public virtual bool Interests(Entity entity)
         {
-            if (AllTypesMap.Count == 0 && AnyTypesMap.Count == 0 && ExcludeTypesMap.Count == 0) return false;
-            
-            var entityTypes = entity.GetComponentTypes();
-            foreach (var ctype in AllTypesMap)
-            {
-                if (!entity.ContainsComponent(ctype)) return false;
-            }
-            bool any = false;
-            foreach (var ctype in entity.GetComponentTypes())
-            {
-                if (ExcludeTypesMap.Contains(ctype)) return false;
-                if (AnyTypesMap.Contains(ctype)) any = true;
-            }
-            if(AnyTypesMap.Count > 0)
-                return any;
-            return true;
+            if (!(this.AllTypesMap > 0 || this.ExcludeTypesMap > 0 || this.AnyTypesMap > 0))
+                return false;
+
+            return ((this.AnyTypesMap & entity.ComponentBits) != 0 || this.AnyTypesMap == 0) &&
+                   ((this.AllTypesMap & entity.ComponentBits) == this.AllTypesMap || this.AllTypesMap == 0) &&
+                   ((this.ExcludeTypesMap & entity.ComponentBits) == 0);
         }
 
         public Aspect GetAll(params Type[] types)
         {
             foreach (var type in types)
-                AllTypesMap.Add(ComponentTypeManager.Please.GetComponentTypeOf(type));
+                AllTypesMap |= ComponentType.GetBit(type);
             return this;
         }
 
         public Aspect GetExclude(params Type[] types)
         {
             foreach (var type in types)
-                this.ExcludeTypesMap.Add(ComponentTypeManager.Please.GetComponentTypeOf(type));
+                ExcludeTypesMap |= ComponentType.GetBit(type);
             return this;
         }
 
         public Aspect GetOne(params Type[] types)
         {
             foreach (var type in types)
-                this.AnyTypesMap.Add(ComponentTypeManager.Please.GetComponentTypeOf(type));
+                AnyTypesMap |= ComponentType.GetBit(type);
             return this;
         }
     }

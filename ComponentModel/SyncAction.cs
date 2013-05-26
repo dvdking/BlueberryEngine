@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Blueberry.ComponentModel
 {
     [Flags]
-    public enum SyncState
+    public enum SyncAction
     {
         Add = 1,
         Remove = 2,
-        Refresh = 4
+        Resolve = 4,
+        Regroup = 8
     }
 }

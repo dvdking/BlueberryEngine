@@ -277,7 +277,7 @@ namespace Blueberry.Graphics
 
         #region DrawTexture
 
-        public unsafe void DrawTexture(Texture texture, float x, float y, float width, float height, RectangleF sourceRectangle, Color4 color = default(Color4),
+        public unsafe void DrawTexture(Texture texture, float x, float y, float width, float height, RectangleF sourceRectangle, Color4 color,
                                 float rotation = 0.0f, float xOrigin = 0.5f, float yOrigin = 0.5f,
                                 bool flipHorizontally = false, bool flipVertically = false)
         {

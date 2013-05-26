@@ -1,21 +1,51 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 
 namespace Blueberry.ComponentModel
 {
     public struct ComponentType
     {
-        public readonly int Value;
+        private static int _nextId = 0;
+        private static Dictionary<Type, int> _typeRegister;
+ 
+        public readonly int Id;
+        public readonly BigInteger TypeBit;
 
-        internal ComponentType(int type)
+        static ComponentType()
         {
-            this.Value = type;
+            _typeRegister = new Dictionary<Type, int>();
         }
+
+        internal ComponentType(Type type)
+        {
+            int id;
+            if (!_typeRegister.TryGetValue(type, out id))
+            {
+                id = _nextId++;
+                _typeRegister[type] = id;
+            }
+            Id = id;
+            TypeBit = 1;
+            TypeBit <<= id;
+        }
+        
         public override int GetHashCode()
         {
-            return Value;
+            return Id;
+        }
+        public static BigInteger GetBit(Type type)
+        {
+            int id;
+            if (_typeRegister.TryGetValue(type, out id))
+            {
+                BigInteger bit = 1;
+                bit <<= id;
+                return bit;
+            }
+            return 0;
         }
     }
 }

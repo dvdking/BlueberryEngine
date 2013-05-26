@@ -27,13 +27,5 @@ namespace Blueberry.ComponentModel
             get;
             set;
         }
-        /// <summary>
-        /// Gets or sets whether the dependency can be a subclass of the specified component type.
-        /// </summary>
-        public bool AllowDerivedTypes
-        {
-            get;
-            set;
-        }
     }
 }

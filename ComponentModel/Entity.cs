@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 
 namespace Blueberry.ComponentModel
@@ -9,32 +10,29 @@ namespace Blueberry.ComponentModel
     {
         private static int nextId = 0;
  
-        private string _name;
-        private int _id;
+        private string _tag;
+        private readonly int _id;
 
-        private Dictionary<ComponentType, Component> _components;
-        private Dictionary<ComponentType, Component> _syncList; 
+        internal BigInteger ComponentBits;
+        internal BigInteger SystemBits;
+        internal BigInteger GroupBits;
 
-        public string Name
+        public string Tag
         {
-            get { return _name; }
-            set { _name = value; }
+            get { return _tag; }
+            set { _tag = value; }
         }
 
         public int Id  { get { return _id; } }
 
-        public int Count { get { return _components.Count; } }
+        internal SyncAction SyncAction { get; set; }
 
-        public SyncState SyncState { get; internal set; }
-
-        internal Entity(string name, int id)
+        internal Entity(string tag, int id)
         {
-            _name = name;
+            _tag = tag;
             _id = id;
-            _components = new Dictionary<ComponentType, Component>();
-            _syncList = new Dictionary<ComponentType, Component>();
         }
-        internal Entity(string name) : this(name, nextId++) { }
+        internal Entity(string tag) : this(tag, nextId++) { }
         internal Entity() : this("", nextId++) { }
 
         public void AddComponent(Component component)
@@ -42,26 +40,24 @@ namespace Blueberry.ComponentModel
             if (component == null)
                 throw new ArgumentNullException("component", "component can not be null");
 
-            if (_components.ContainsKey(component.CType))
-                throw new ArgumentException("Given component already contains in entity or in add queue", "component");
-            _syncList[component.CType] = component;
-            component.SyncState = SyncState.Add;
-            EntityManager.Please.AddToSync(this, SyncState.Refresh);
+            if ((ComponentBits & component.CType.TypeBit) != 0)
+                throw new ArgumentException("Given component already contains in entity", "component");
+            ComponentBits |= component.CType.TypeBit;
+            component.Owner = this;
+            EntityWorld.Please.AddToSync(component, SyncAction.Add);
         }
-        public void AddComponent(Type componentType)
+        public void AddComponent(Type type)
         {
-            if (componentType == null)
+            if (type == null)
                 throw new ArgumentNullException("type", "type can not be null");
-            if (Component.CanCreate(componentType))
+            if (Component.CanCreate(type))
             {
-                ComponentType ctype = ComponentTypeManager.Please.GetComponentTypeOf(componentType);
-
-                if (_components.ContainsKey(ctype))
-                    throw new ArgumentException("Component of given type already contains in entity or in add queue", "componentType");
-                Component component = Component.Create(componentType);
-                _syncList[ctype] = component;
-                component.SyncState = SyncState.Add;
-                EntityManager.Please.AddToSync(this, SyncState.Refresh);
+                if((ComponentBits & ComponentType.GetBit(type)) != 0)
+                    throw new ArgumentException("Component of given type already contains in entity or in add queue", "type");
+                Component component = Component.Create(type);
+                ComponentBits |= component.CType.TypeBit;
+                component.Owner = this;
+                EntityWorld.Please.AddToSync(component, SyncAction.Add);
             }
         }
 
@@ -75,15 +71,14 @@ namespace Blueberry.ComponentModel
             foreach (var component in components)
             {
                 if (component == null)
-                    throw new ArgumentNullException("component", "component can not be null");
+                    throw new ArgumentNullException("components", "components can not be null");
                 ComponentType ctype = component.CType;
-                if (_components.ContainsKey(ctype))
-                    throw new ArgumentException("Given component already contains in entity or in add queue", "component");
-                _syncList[ctype] = component;  
-                component.SyncState = SyncState.Add;
+                if ((ComponentBits & ctype.TypeBit) != 0)
+                    throw new ArgumentException("Given component already contains in entity or in add queue", "components[i]");
+                ComponentBits |= ctype.TypeBit;
+                component.Owner = this;
+                EntityWorld.Please.AddToSync(component, SyncAction.Add);
             }
-
-            EntityManager.Please.AddToSync(this, SyncState.Refresh);
         }
         public void AddComponents(IEnumerable<Type> componentTypes)
         {
@@ -93,16 +88,14 @@ namespace Blueberry.ComponentModel
                     throw new ArgumentNullException("componentType", "Component type can't be null");
                 if (Component.CanCreate(type))
                 {
-                    ComponentType ctype = ComponentTypeManager.Please.GetComponentTypeOf(type);
-                    if (_components.ContainsKey(ctype))
-                        throw new ArgumentException("Component of given type already contains in entity or in add queue",
-                                                    "type");
+                    if ((ComponentBits & ComponentType.GetBit(type)) != 0)
+                        throw new ArgumentException("Component of given type already contains in entity or in add queue","type");
                     Component component = Component.Create(type);
-                    _syncList[ctype] = component;
-                    component.SyncState = SyncState.Add;
+                    ComponentBits |= component.CType.TypeBit;
+                    component.Owner = this;
+                    EntityWorld.Please.AddToSync(component, SyncAction.Add);
                 }
             }
-            EntityManager.Please.AddToSync(this, SyncState.Refresh);
         }
         public void AddComponents(params Component[] components)
         {
@@ -113,170 +106,161 @@ namespace Blueberry.ComponentModel
             AddComponents((IEnumerable<Type>)componentTypes);
         }
 
-        public void RemoveComponent(Component component)
+        public bool RemoveComponent(Component component)
         {
             if (component != null)
             {
-                if (_components.ContainsKey(component.CType))
+                if ((ComponentBits & component.CType.TypeBit) != 0 && component.Owner == this)
                 {
-                    _syncList.Add(component.CType, component);
-                    component.SyncState = SyncState.Remove;
+                    EntityWorld.Please.AddToSync(component, SyncAction.Remove);
+                    ComponentBits ^= component.CType.TypeBit;
+                    return true;
                 }
             }
-        }
-        public void RemoveComponent(ComponentType type)
-        {
-            Component component;
-            if (_components.TryGetValue(type, out component))
-            {
-                _syncList.Add(type, component);
-                component.SyncState = SyncState.Remove;
-            }
+            return false;
         }
 
-        public void ResolveComponents()
+        public bool RemoveComponent(ComponentType ctype)
         {
-            foreach (var component in _syncList.Values)
-            {
-                if(component.SyncState == SyncState.Add)
-                {
-                    _components.Add(component.CType, component);
-                    component.Owner = this;
-                    component.OnAdded();
-                }
-                else if (component.SyncState == SyncState.Remove)
-                {
-                    _components.Remove(component.CType);
-                    component.Owner = null;
-                    component.OnRemoved();
-                }
-            }
-            _syncList.Clear();
-
-            foreach (var component in _components.Values)
-            {
-                component.FindDependencies();
-                component.InjectDependencies();
-            }
+            return RemoveComponent(EntityWorld.Please.GetComponent(this, ctype));
         }
 
         public void Broadcast(IMessage message)
         {
-            foreach (Component component in _components.Values)
-            {
-                component.ReceiveMessage(message);
-            }
+            var components = EntityWorld.Please.GetComponents(this);
+            if(components != null)
+                foreach (Component component in components)
+                    component.ReceiveMessage(message);
         }
 
-        public Component GetComponent(ComponentType type)
+        public void Send<T>(IMessage message) where T : Component
         {
-            Component component;
-            if (_components.TryGetValue(type, out component))
-                return component;
+            Component component = GetComponent<T>();
+            if(component != null)
+                component.ReceiveMessage(message);
+        }
+
+        public Component GetComponent(ComponentType ctype)
+        {
+            if ((ComponentBits & ctype.TypeBit) != 0)
+                return EntityWorld.Please.GetComponent(this, ctype);
             return null;
         }
-
+        public Component GetComponent(Type type)
+        {
+            var ctype = new ComponentType(type);
+            if ((ComponentBits & ctype.TypeBit) != 0)
+                return EntityWorld.Please.GetComponent(this, ctype);
+            return null;
+        }
         public Component GetComponent<T>() where T: Component
         {
-            Component component;
-            if (_components.TryGetValue(ComponentTypeManager.Please.GetComponentTypeOf(typeof(T)), out component))
-                return component;
-            return null;
-        }
-
-        public Component GetComponent(Type type, bool allowingDerivedTypes)
-        {
-            Component component = null;
-
-            foreach (var c in _components.Values)
-            {
-                if ((allowingDerivedTypes && c.GetType().IsSubclassOf(type)) || c.GetType() == type)
-                {
-                    component = c;
-                    break;
-                }
-            }
-            return component;
-        }
-
-        public Component GetComponent<T>(bool allowingDerivedTypes) where T : Component
-        {
-            Component component = null;
-            Type t = typeof (T);
-            foreach (var c in _components.Values)
-            {
-                if ((allowingDerivedTypes && c is T) || c.GetType() == t)
-                {
-                    component = c;
-                    break;
-                }
-            }
-            return component;
+            return GetComponent(typeof (T));
         }
 
         public bool ContainsComponent(ComponentType type)
         {
-            return _components.ContainsKey(type);
+            return (ComponentBits & type.TypeBit) != 0;
         }
 
         public bool ContainsComponent(Type type)
         {
-            return _components.ContainsKey(ComponentTypeManager.Please.GetComponentTypeOf(type));
+            return (ComponentBits & ComponentType.GetBit(type)) != 0;
         }
 
         public IEnumerable<Component> GetComponents()
         {
-            return _components.Values;
+            return EntityWorld.Please.GetComponents(this);
         }
-        public IEnumerable<ComponentType> GetComponentTypes()
-        {
-            return _components.Keys;
-        }
-
+        
         public void LeaveGroup(string groupName)
         {
-            EntityManager.Please.RemoveFromGroup(this, groupName);
+            EntityGroup.GetGroup(groupName).Remove(this);
+            EntityWorld.Please.AddToSync(this, SyncAction.Regroup);
+        }
+        public void LeaveGroup(EntityGroup group)
+        {
+            group.Remove(this);
+            EntityWorld.Please.AddToSync(this, SyncAction.Regroup);
         }
 
         public void LeaveAllGroups()
         {
-            EntityManager.Please.RemoveFromAllGroups(this);
+            EntityGroup.LeaveAll(this);
+            EntityWorld.Please.AddToSync(this, SyncAction.Regroup);
         }
 
         public void JoinGroup(string groupName)
         {
-            EntityManager.Please.AddToGroup(this, groupName);
+            EntityGroup.GetGroup(groupName).Add(this);
+            EntityWorld.Please.AddToSync(this, SyncAction.Regroup);
+        }
+        public void JoinGroup(EntityGroup group)
+        {
+            group.Add(this);
+            EntityWorld.Please.AddToSync(this, SyncAction.Regroup);
         }
 
         public void ToggleGroup(string groupName)
         {
-            EntityManager.Please.ToggleGroup(this, groupName);
+            ToggleGroup(EntityGroup.GetGroup(groupName));
+        }
+        public void ToggleGroup(EntityGroup group)
+        {
+            if ((GroupBits & group.GroupBit) != 0)
+                group.Add(this);
+            else
+                group.Remove(this);
+            EntityWorld.Please.AddToSync(this, SyncAction.Regroup);
         }
 
         public bool InGroup(string groupName)
         {
-            return EntityManager.Please.InGroup(this, groupName);
+            return (GroupBits & EntityGroup.GetGroup(groupName).GroupBit) != 0;
+        }
+        public bool InGroup(EntityGroup group)
+        {
+            return (GroupBits & group.GroupBit) != 0;
         }
 
         public bool InEveryGroup(params string[] groups)
         {
-            return EntityManager.Please.InEveryGroup(this, groups);
+            return InEveryGroup((IEnumerable<string>) groups);
         }
         public bool InAnyGroup(params string[] groups)
         {
-            return EntityManager.Please.InAnyGroup(this, groups);
+            return InAnyGroup((IEnumerable<string>) groups);
         }
         public bool InEveryGroup(IEnumerable<string> groups)
         {
-            return EntityManager.Please.InEveryGroup(this, groups);
+            foreach (var @group in groups)
+            {
+                EntityGroup g = EntityGroup.GetGroup(@group);
+                if ((GroupBits & g.GroupBit) == 0) return false;
+            }
+            return true;
         }
         public bool InAnyGroup(IEnumerable<string> groups)
         {
-            return EntityManager.Please.InAnyGroup(this, groups);
+            foreach (var @group in groups)
+            {
+                EntityGroup g = EntityGroup.GetGroup(@group);
+                if ((GroupBits & g.GroupBit) != 0) return true;
+            }
+            return false;
         }
         public override int GetHashCode()
         {
             return Id;
+        }
+        public void ResolveDependencies()
+        {
+            var components = EntityWorld.Please.GetComponents(this);
+            foreach (var component in components)
+            {
+                component.FindDependencies();
+                component.InjectDependencies();
+            }
         }
     }
 }

@@ -50,8 +50,6 @@ namespace Blueberry
 		
 		public GameFrame CurrentFrame {get{return _currentFrame;} set {_nextFrame = value;}}
 
-	    private float _totalTime;
-
 		public BlueberryGame(int width, int height, string name, bool fullscreen, double contextVersion = 0)
 		{
 			_current = this;
@@ -143,19 +141,19 @@ namespace Blueberry
         {
         	
         }
-        protected virtual void Update(float delta, float total)
+        protected virtual void Update()
         {
             
         }
 		internal virtual void InternalUpdate(object sender, FrameEventArgs e)
 		{
-		    float delta = (float)e.Time;
-		    _totalTime += delta;
+		    GS.Delta = (float)e.Time;
+            GS.Total += (float)e.Time;
 
-            Gamepad.Update(delta);
+            Gamepad.Update(GS.Delta);
             
 			if(_currentFrame != null)
-				_currentFrame.Update(delta);
+                _currentFrame.Update(GS.Delta);
             
 			if(_nextFrame != null)
 			{
@@ -170,26 +168,26 @@ namespace Blueberry
 				_nextFrame = null;
 			}
 			#if DEBUG
-			DiagnosticsCenter.Instance.Update(delta);
+            DiagnosticsCenter.Instance.Update(GS.Delta);
 			if (Keyboard[Key.Tilde])
                 if (DiagnosticsCenter.Instance.Visible) DiagnosticsCenter.Instance.Hide();
                 else DiagnosticsCenter.Instance.Show();
             #endif
-            Update(delta, _totalTime);
+            Update();
 
 		}
-        protected virtual void Render(float delta)
+        protected virtual void Render()
         {
             
         }
 		internal virtual void InternalRender(object sender, FrameEventArgs e)
 		{
-		    float delta = (float)e.Time;
+		    GS.Delta = (float)e.Time;
 			if(_currentFrame != null)
-				_currentFrame.Render(delta);
-            Render(delta);
+                _currentFrame.Render(GS.Delta);
+            Render();
 			#if DEBUG
-			DiagnosticsCenter.Instance.Draw(delta);
+            DiagnosticsCenter.Instance.Draw(GS.Delta);
 			#endif
 			_window.SwapBuffers();
 		}

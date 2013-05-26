@@ -17,22 +17,33 @@ namespace Blueberry.ComponentModel
             get { return _owner; }
             internal set { _owner = value; }
         }
-        internal SyncState SyncState { get; set; }
 
-        public Component()
+        internal SyncAction SyncAction { get; set; }
+
+        protected Component()
         {
-            CType = ComponentTypeManager.Please.GetComponentTypeOf(GetType());
+            CType = new ComponentType(GetType());
         }
-        public abstract void ReceiveMessage(IMessage message);
+
+        public virtual void ReceiveMessage(IMessage message)
+        {
+        }
+
+        protected internal virtual void Initialize()
+        {
+            
+        }
+
+        protected internal virtual void Release()
+        {
+            ClearDependencies();
+        }
 
         private static bool CanDependOn(Type type)
         {
             return typeof (Component).IsAssignableFrom(type);
         }
 
-        /// <summary>
-        /// Helper method to create an instance of a specified type, and casting it to `Component`
-        /// </summary>
         public static Component Create(Type type)
         {
             Component result = null;
@@ -48,12 +59,13 @@ namespace Blueberry.ComponentModel
 
             return result;
         }
-        public static Component Create<T>() where T: Component
+
+        public static Component Create<T>() where T : Component
         {
             Component result = null;
             try
             {
-                result = Activator.CreateInstance(typeof(T)) as Component;
+                result = Activator.CreateInstance(typeof (T)) as Component;
             }
             catch (MissingMethodException)
             {
@@ -68,17 +80,15 @@ namespace Blueberry.ComponentModel
         {
             return typeof (Component).IsAssignableFrom(type) && type.GetConstructor(Type.EmptyTypes) != null;
         }
-        public static bool CanCreate<T>() where T: Component
+
+        public static bool CanCreate<T>() where T : Component
         {
-            return typeof(T).GetConstructor(Type.EmptyTypes) != null;
+            return typeof (T).GetConstructor(Type.EmptyTypes) != null;
         }
 
         private Dictionary<FieldInfo, RequireComponentAttribute> _dependencies =
             new Dictionary<FieldInfo, RequireComponentAttribute>();
 
-        /// <summary>
-        /// Discovers which member fields are explicitly marked as dependencies.
-        /// </summary>
         internal void FindDependencies()
         {
             _dependencies.Clear();
@@ -105,7 +115,7 @@ namespace Blueberry.ComponentModel
             foreach (FieldInfo field in fields)
             {
                 foreach (RequireComponentAttribute dependency in
-                        field.GetCustomAttributes(typeof (RequireComponentAttribute), false))
+                    field.GetCustomAttributes(typeof (RequireComponentAttribute), false))
                 {
                     Type componentType = field.FieldType;
 
@@ -161,7 +171,7 @@ namespace Blueberry.ComponentModel
 
                 // Determines which entity the dependency should be grabbed from. 
                 Entity entity = (!string.IsNullOrEmpty(dependency.FromEntityNamed))
-                                    ? EntityManager.Please.Find(dependency.FromEntityNamed)
+                                    ? EntityWorld.Please.FindByTag(dependency.FromEntityNamed)
                                     : Owner;
 
                 if (entity == null)
@@ -184,7 +194,7 @@ namespace Blueberry.ComponentModel
                 return;
 
             Type componentType = field.FieldType;
-            Component dependency = entity.GetComponent(componentType, attribute.AllowDerivedTypes);
+            Component dependency = entity.GetComponent(componentType);
 
             if (dependency == null && attribute.Automatically)
             {
@@ -201,24 +211,9 @@ namespace Blueberry.ComponentModel
         }
 
         /// <summary>
-        /// Occurs when the component is dettached from an entity. All managed dependencies are null'ed.
-        /// </summary>
-        /// <remarks>
-        /// > If you don't want the dependencies to get lost, then override this method and don't call base.
-        /// </remarks>
-        public virtual void OnRemoved()
-        {
-            ClearDependencies();
-        }
-
-        public virtual void OnAdded()
-        {
-        }
-
-        /// <summary>
         /// Clears out all managed dependencies.
         /// </summary>
-        private void ClearDependencies()
+        protected void ClearDependencies()
         {
             foreach (KeyValuePair<FieldInfo, RequireComponentAttribute> pair in _dependencies)
             {

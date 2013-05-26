@@ -63,6 +63,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -100,16 +101,18 @@
     <Compile Include="BlueberryGame.cs" />
     <Compile Include="Capabilities.cs" />
     <Compile Include="ComponentModel\Aspect.cs" />
+    <Compile Include="ComponentModel\Bag.cs" />
     <Compile Include="ComponentModel\Component.cs" />
     <Compile Include="ComponentModel\ComponentType.cs" />
-    <Compile Include="ComponentModel\ComponentTypeManager.cs" />
     <Compile Include="ComponentModel\Entity.cs" />
     <Compile Include="ComponentModel\EntityDefinition.cs" />
-    <Compile Include="ComponentModel\EntityFilter.cs" />
-    <Compile Include="ComponentModel\EntityManager.cs" />
+    <Compile Include="ComponentModel\EntityGroup.cs" />
+    <Compile Include="ComponentModel\EntitySystem.cs" />
+    <Compile Include="ComponentModel\EntityWorld.cs" />
     <Compile Include="ComponentModel\IMessage.cs" />
     <Compile Include="ComponentModel\RequireComponentAttribute.cs" />
-    <Compile Include="ComponentModel\SyncState.cs" />
+    <Compile Include="ComponentModel\SyncAction.cs" />
+    <Compile Include="ComponentModel\TransformComponent.cs" />
     <Compile Include="Diagnostics\DebugGraph.cs" />
     <Compile Include="Diagnostics\DiagnosticsCenter.cs" />
     <Compile Include="Diagnostics\IDiagnosable.cs" />
@@ -118,6 +121,7 @@
     <Compile Include="Geometry\ConvexPolygon.cs" />
     <Compile Include="Geometry\Line.cs" />
     <Compile Include="Geometry\Segment.cs" />
+    <Compile Include="GS.cs" />
     <Compile Include="Input\BatteryInformation.cs" />
     <Compile Include="Input\Bool.cs" />
     <Compile Include="Input\Capabilities.cs" />
@@ -196,7 +200,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="ClassDiagram1.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ComponentModel\Systems\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

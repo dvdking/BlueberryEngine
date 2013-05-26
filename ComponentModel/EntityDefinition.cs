@@ -36,7 +36,7 @@ namespace Blueberry.ComponentModel
 
         public Entity Create(string name = "")
         {
-            var entity = EntityManager.Please.CreateEntity();
+            var entity = EntityWorld.Please.CreateEntity();
 
 
             foreach (var definition in _components)
