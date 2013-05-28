@@ -8,7 +8,7 @@ namespace Blueberry.ComponentModel
 {
     public class EntityDefinition
     {
-        private Dictionary<Type, Dictionary<PropertyInfo, object>> _components; 
+        private Dictionary<Type, Dictionary<PropertyInfo, object>> _components;
 
         public EntityDefinition()
         {

@@ -183,6 +183,21 @@
     <Compile Include="SceneManagement\Scene.cs" />
     <Compile Include="SceneManagement\Sprite.cs" />
     <Compile Include="Tile.cs" />
+    <Compile Include="Tiled\ImageLayer.cs" />
+    <Compile Include="Tiled\LayerList.cs" />
+    <Compile Include="Tiled\Line.cs" />
+    <Compile Include="Tiled\Map.cs" />
+    <Compile Include="Tiled\MapImage.cs" />
+    <Compile Include="Tiled\MapObject.cs" />
+    <Compile Include="Tiled\MapReader.cs" />
+    <Compile Include="Tiled\ObjectLayer.cs" />
+    <Compile Include="Tiled\Polygon.cs" />
+    <Compile Include="Tiled\Polyline.cs" />
+    <Compile Include="Tiled\Property.cs" />
+    <Compile Include="Tiled\Tile.cs" />
+    <Compile Include="Tiled\TileData.cs" />
+    <Compile Include="Tiled\TileLayer.cs" />
+    <Compile Include="Tiled\Tileset.cs" />
     <Compile Include="TimSortExtender.cs" />
     <Compile Include="Audio\AudioRemoteControll.cs" />
     <Compile Include="Audio\AudioReader.cs" />
@@ -199,9 +214,6 @@
     <Content Include="xinput1_3.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ComponentModel\Systems\" />
