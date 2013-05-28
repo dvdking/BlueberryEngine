@@ -32,7 +32,7 @@ namespace Blueberry.Tiled
             l.End = end;
             return l;
         }
-
+        /*
         /// <summary>
         /// Draws a Line
         /// </summary>
@@ -50,7 +50,7 @@ namespace Blueberry.Tiled
             spriteBatch.Draw(texture, start, null, color, line.Angle, Vector2.Zero, new Vector2(line.Length, lineWidth),
                              SpriteEffects.None, layerDepth);
         }
-
+        */
         /// <summary>
         /// Determines if a specificed Line intersects with this Line
         /// </summary>

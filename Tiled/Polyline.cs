@@ -47,7 +47,7 @@ namespace Blueberry.Tiled {
 
             return poly;
         }
-
+        /*
         /// <summary>
         /// Draws the lines that make up the Polyline
         /// </summary>
@@ -61,7 +61,7 @@ namespace Blueberry.Tiled {
             for (int i = 0; i < Lines.Length; i++)
                 Line.Draw(spriteBatch, Lines[i], region, texture, lineWidth, color, layerDepth);
         }
-
+        */
         /// <summary>
         /// Determines if a specificed Rectangle intersects with this Polyline
         /// </summary>

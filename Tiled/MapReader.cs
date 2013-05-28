@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 namespace Blueberry.Tiled {
-
+    /*
     /// <summary/>
     public sealed class MapReader : ContentTypeReader<Map> {
         /// <summary/>
@@ -293,7 +293,7 @@ namespace Blueberry.Tiled {
             return m;
         }
     }
-
+    
     internal static class ContentReaderExtensions {
         public static TEnum ReadEnum<TEnum>(this ContentReader @this) where TEnum : struct, IComparable {
             Type type = typeof(TEnum);
@@ -320,5 +320,5 @@ namespace Blueberry.Tiled {
             return type.IsEnum;
         }
 #endif
-    }
+    }*/
 }

@@ -103,6 +103,7 @@
     <Compile Include="ComponentModel\Aspect.cs" />
     <Compile Include="ComponentModel\Bag.cs" />
     <Compile Include="ComponentModel\Component.cs" />
+    <Compile Include="ComponentModel\ComponentsPool.cs" />
     <Compile Include="ComponentModel\ComponentType.cs" />
     <Compile Include="ComponentModel\Entity.cs" />
     <Compile Include="ComponentModel\EntityDefinition.cs" />

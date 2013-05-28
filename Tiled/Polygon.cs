@@ -2,17 +2,20 @@
 using System.Drawing;
 using System.Linq;
 using System.Collections.Generic;
+using Blueberry.Graphics;
 using OpenTK;
 
-namespace Blueberry.Tiled {
+namespace Blueberry.Tiled 
+{
     /// <summary>
     /// A sequence of lines that form a closed shape
     /// </summary>
-    public class Polygon {
+    public class Polygon 
+    {
         /// <summary>
         /// A texture representing the polygon, must be first created by calling GenerateTexure
         /// </summary>
-        public Texture2D Texture;
+        public Texture Texture;
         /// <summary>
         /// The points that make up the polygon, in order
         /// </summary>
@@ -52,7 +55,7 @@ namespace Blueberry.Tiled {
 
             return poly;
         }
-
+        /*
         /// <summary>
         /// Initializes the Polygon.Texture field
         /// </summary>
@@ -105,7 +108,7 @@ namespace Blueberry.Tiled {
 
             spriteBatch.Draw(this.Texture, Map.Translate(this.Bounds, region), null, fillColor, 0, Vector2.Zero, SpriteEffects.None, layerDepth);
         }
-
+        */
         /// <summary>
         /// Determines if a Vector2 is inside this Polygon
         /// </summary>

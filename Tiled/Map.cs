@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using Blueberry.Graphics;
+using OpenTK;
 
 namespace Blueberry.Tiled {
     /// <summary />
@@ -103,7 +104,7 @@ namespace Blueberry.Tiled {
         /// Order of tile, object and image layers combined, first is the bottom layer
         /// </summary>
         public LayerInfo[] LayerOrder;
-
+        /*
         /// <summary>
         /// Enables rendering of map objects
         /// </summary>
@@ -435,7 +436,7 @@ namespace Blueberry.Tiled {
 
             spriteBatch.Draw(this.ImageLayers[imageLayerID].MapImages[imageID].Texture, target, null, color, 0, Vector2.Zero, SpriteEffects.None, layerDepth);
         }
-
+        */
         /// <summary>
         /// Translates a location to screen space
         /// </summary>
@@ -545,7 +546,7 @@ namespace Blueberry.Tiled {
             List<MapObject> results = new List<MapObject>();
 
             for (int i = 0; i < this.ObjectLayers[objectLayerID].MapObjects.Length; i++) {
-                if (region.Contains(this.ObjectLayers[objectLayerID].MapObjects[i].Bounds) || region.Intersects(this.ObjectLayers[objectLayerID].MapObjects[i].Bounds))
+                if (region.Contains(this.ObjectLayers[objectLayerID].MapObjects[i].Bounds) || region.IntersectsWith(this.ObjectLayers[objectLayerID].MapObjects[i].Bounds))
                     results.Add(this.ObjectLayers[objectLayerID].MapObjects[i]);
             }
 

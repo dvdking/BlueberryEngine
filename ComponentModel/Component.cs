@@ -95,17 +95,17 @@ namespace Blueberry.ComponentModel
 
             Type type = GetType();
 
-            FindDependencies(type, _dependencies);
+            FindDependencies(type);
 
             while ((type = type.BaseType) != null)
             {
                 if (!CanDependOn(type))
                     break;
-                FindDependencies(type, _dependencies);
+                FindDependencies(type);
             }
         }
 
-        private void FindDependencies(Type type, Dictionary<FieldInfo, RequireComponentAttribute> deps)
+        private void FindDependencies(Type type)
         {
             FieldInfo[] fields = type.GetFields(
                 BindingFlags.Instance |
@@ -198,7 +198,7 @@ namespace Blueberry.ComponentModel
 
             if (dependency == null && attribute.Automatically)
             {
-                dependency = Create(componentType);
+                dependency = Component.Create(componentType);
 
                 if (dependency == null)
                     return;
