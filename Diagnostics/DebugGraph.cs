@@ -60,6 +60,7 @@ namespace Blueberry.Diagnostics
  			}
             if(values.Count > 1)
             {
+
 	            for (int i = values.Count-1, j = 0; i >= 1; i--, j++)
 	                SpriteBatch.Please.DrawLine(r.Right - (j * costx), r.Bottom - (values[i] - minVal) * costy, r.Right - (j + 1)*costx, r.Bottom - (values[i - 1] - minVal) * costy, 2, Color4.Red);
             	

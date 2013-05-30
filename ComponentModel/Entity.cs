@@ -31,9 +31,22 @@ namespace Blueberry.ComponentModel
         {
             _tag = tag;
             _id = id;
+            Init();
         }
         internal Entity(string tag) : this(tag, nextId++) { }
         internal Entity() : this("", nextId++) { }
+
+
+        /// <summary>
+        /// resets entity to default state, used for poolling
+        /// </summary>
+        internal void Init()
+        {
+            ComponentBits = BigInteger.Zero;
+            SystemBits = BigInteger.Zero;
+            GroupBits = BigInteger.Zero;
+            SyncAction = 0;
+        }
 
         public void AddComponent(Component component)
         {

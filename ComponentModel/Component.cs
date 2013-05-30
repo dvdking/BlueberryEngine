@@ -10,6 +10,9 @@ namespace Blueberry.ComponentModel
     public abstract class Component
     {
         private Entity _owner;
+        private Dictionary<FieldInfo, RequireComponentAttribute> _dependencies =
+            new Dictionary<FieldInfo, RequireComponentAttribute>();
+
         public readonly ComponentType CType;
 
         public Entity Owner
@@ -85,10 +88,7 @@ namespace Blueberry.ComponentModel
         {
             return typeof (T).GetConstructor(Type.EmptyTypes) != null;
         }
-
-        private Dictionary<FieldInfo, RequireComponentAttribute> _dependencies =
-            new Dictionary<FieldInfo, RequireComponentAttribute>();
-
+        
         internal void FindDependencies()
         {
             _dependencies.Clear();

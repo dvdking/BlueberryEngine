@@ -30,11 +30,13 @@ namespace Blueberry.ComponentModel
         private HashSet<Entity> _entitySyncList;
         private HashSet<EntitySystem> _systems;
 
+        private EntityPool _entityPool;
+
         private Dictionary<string, EntityDefinition> _definitions;
 
         public Entity CreateEntity(params Component[] components)
         {
-            Entity entity = new Entity();
+            var entity = _entityPool.CreateEntity();
             entity.AddComponents(components);
             entity.SyncAction |= SyncAction.Add;
             _entitySyncList.Add(entity);
@@ -43,7 +45,7 @@ namespace Blueberry.ComponentModel
 
         public Entity CreateEntity(params Type[] componentTypes)
         {
-            Entity entity = new Entity();
+            var entity = _entityPool.CreateEntity();
             entity.AddComponents(componentTypes);
             entity.SyncAction |= SyncAction.Add;
             _entitySyncList.Add(entity);
@@ -52,7 +54,7 @@ namespace Blueberry.ComponentModel
 
         public Entity CreateEntity(string tag = "")
         {
-            Entity entity = new Entity(tag);
+            var entity = _entityPool.CreateEntity(tag);
             entity.SyncAction |= SyncAction.Add;
             _entitySyncList.Add(entity);
             return entity;
@@ -81,6 +83,7 @@ namespace Blueberry.ComponentModel
             _systems = new HashSet<EntitySystem>();
             _entitySyncList = new HashSet<Entity>();
             _entities = new Dictionary<int, Entity>();
+            _entityPool = new EntityPool();
         }
 
         public void Broadcast(IMessage message)
@@ -148,6 +151,7 @@ namespace Blueberry.ComponentModel
                         components.Set(component.CType.Id, null);
                         if (component.Owner.ComponentBits == 0)
                         {
+                            //why?
                             // TODO: Remove or pool entity
                         }
                         component.Release();
@@ -163,15 +167,31 @@ namespace Blueberry.ComponentModel
                 }
                 if (entity.SyncAction.HasFlag(SyncAction.Remove))
                 {
-                    // TODO: Remove or pool entity
+                    _entityPool.Push(entity);
                     _entities.Remove(entity.Id);
+
+                    Bag<Component> components = null;
+                    _globalStorage.TryGetValue(entity.Id, out components);
+
+                   // _globalStorage.Remove(entity.Id);
+                    foreach (var component in components)
+                    {
+                        components.Set(component.CType.Id, null);
+                        component.Release();
+                    }
                 }
                 if (entity.SyncAction.HasFlag(SyncAction.Resolve))
                     entity.ResolveDependencies();
+                
             }
             foreach (var entitySystem in _systems)
             {
                 entitySystem.SyncEntities(_entitySyncList);
+            }
+
+            foreach (var entity in _entitySyncList)
+            {
+                entity.SyncAction = 0;
             }
             _componentSyncList.Clear();
             _entitySyncList.Clear();

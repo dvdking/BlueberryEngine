@@ -108,6 +108,7 @@
     <Compile Include="ComponentModel\Entity.cs" />
     <Compile Include="ComponentModel\EntityDefinition.cs" />
     <Compile Include="ComponentModel\EntityGroup.cs" />
+    <Compile Include="ComponentModel\EntityPool.cs" />
     <Compile Include="ComponentModel\EntitySystem.cs" />
     <Compile Include="ComponentModel\EntityWorld.cs" />
     <Compile Include="ComponentModel\IMessage.cs" />

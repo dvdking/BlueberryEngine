@@ -25,7 +25,7 @@ namespace Blueberry.Graphics
         int pixelTex = -1;
         int framebuffer = -1;
         Shader defaultShader;
-        Shader current;
+        Shader current; 
 
         private static SpriteBatch instance;
 
