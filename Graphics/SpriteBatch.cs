@@ -315,8 +315,15 @@ namespace Blueberry.Graphics
 
             float dx = -xOrigin * width;
             float dy = -yOrigin * height;
-            float sin = (float)Math.Sin(rotation);
-            float cos = (float)Math.Cos(rotation);
+
+            float sin = 0;
+            float cos = 1;
+
+            if (rotation != 0)
+            {
+                sin = (float)Math.Sin(rotation);
+                cos = (float)Math.Cos(rotation);
+            }
 
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
             int* ind = vbuffer.GetIndexPointerToFill(6);
@@ -394,6 +401,7 @@ namespace Blueberry.Graphics
         }
         #endregion
         #endregion DrawTexture
+
 
         #region DrawLine
         public unsafe void DrawLine(float x1, float y1, float x2, float y2, float thickness, Color4 color)
