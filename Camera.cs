@@ -39,8 +39,7 @@ namespace Blueberry
 
         private Rumble _scaleRumble;
         private sbyte _lastScaleRumbleSign  = 1;
-
-        private double _temp;
+		
         private Random rnd;
         private Rectangle _space;
         private Vector2 _origin;

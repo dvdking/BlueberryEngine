@@ -11,9 +11,6 @@ namespace Blueberry.Diagnostics
 {
     class DebugGraph
     {
-        int width = 10;
-        int height;
-        float rangeY;
         float maxVal = float.MinValue;
         float minVal = float.MaxValue;
         List<float> values;

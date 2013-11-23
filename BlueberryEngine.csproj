@@ -65,9 +65,6 @@
     <Reference Include="OpenTK">
       <HintPath>Dependencies\OpenTK.dll</HintPath>
     </Reference>
-    <Reference Include="NVorbis">
-      <HintPath>Dependencies\NVorbis.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Animations\Animation.cs" />
@@ -206,6 +203,13 @@
     <Compile Include="Audio\AudioReader.cs" />
     <Compile Include="Audio\OggAudioReader.cs" />
     <Compile Include="Audio\AudioHelper.cs" />
+    <Compile Include="GameObjects\BoundaryComponent.cs" />
+    <Compile Include="GameObjects\Component.cs" />
+    <Compile Include="GameObjects\GameObject.cs" />
+    <Compile Include="GameObjects\GameObjectsManager.cs" />
+    <Compile Include="GameObjects\IDrawable.cs" />
+    <Compile Include="GameObjects\IUpdatable.cs" />
+    <Compile Include="GameObjects\Messages\IMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="OpenAL32.dll">
@@ -220,6 +224,13 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ComponentModel\Systems\" />
+    <Folder Include="GameObjects\" />
+    <Folder Include="GameObjects\Components\AnimationComponents\" />
+    <Folder Include="GameObjects\Components\AnimationComponents\" />
+    <Folder Include="GameObjects\Components\AnimationComponents\" />
+    <Folder Include="GameObjects\Components\AnimationComponents\" />
+    <Folder Include="GameObjects\Components\AnimationComponents\" />
+    <Folder Include="GameObjects\Components\AnimationComponents\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

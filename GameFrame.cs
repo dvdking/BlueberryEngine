@@ -10,7 +10,6 @@ namespace Blueberry
 	/// </summary>
 	public class GameFrame
 	{
-		private bool _active;
 		public bool Active { get; private set; }
 
         internal KeyboardDevice _keyboard;

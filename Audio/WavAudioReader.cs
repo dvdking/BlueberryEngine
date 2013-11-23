@@ -99,7 +99,7 @@ namespace Blueberry.Audio
 			catch (EndOfStreamException)
 			{
 			}
-			catch (ArgumentOutOfRangeException e)
+			catch (ArgumentOutOfRangeException)
 			{
 			}
 			lastPos = _reader.BaseStream.Position;
