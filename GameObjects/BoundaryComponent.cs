@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 
-namespace BlueberryEngine.GameObjects
+namespace Blueberry.GameObjects
 {
 	public class Transform:Component
     {
@@ -63,11 +63,6 @@ namespace BlueberryEngine.GameObjects
         
 		public Transform()
         {
-        }
-
-        public override int ComponentType
-        {
-            get { throw new NotImplementedException(); }
         }
 
         public override void ProccesMessage(Messages.IMessage message)

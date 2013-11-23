@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Blueberry.Geometry;
-using BlueberryEngine.GameObjects.Messages;
+using Blueberry.GameObjects.Messages;
 using Blueberry;
 using System.Drawing;
 
-namespace BlueberryEngine.GameObjects
+namespace Blueberry.GameObjects
 {
     public class GameObjectsManager
     {
@@ -26,12 +26,18 @@ namespace BlueberryEngine.GameObjects
             _gameObjects = new List<GameObject>(150);
             _addNewObjectsQueue = new Queue<GameObject>(150);
             _deleteObjectsQueue = new Queue<GameObject>(150);
-        }
+		}
+
+		public GameObject GetByName(string name)
+		{
+			return _gameObjects.Find(p => p.Name == name);
+		}
 
         public void AddObject(GameObject gameObject)
         {
             if (gameObject == null) throw new ArgumentNullException("gameObject");
             _addNewObjectsQueue.Enqueue(gameObject);
+			gameObject.GameObjectManager = this;
         }
 
         public void RemoveObject(GameObject gameObject)
@@ -93,7 +99,7 @@ namespace BlueberryEngine.GameObjects
         }
 
 
-        private void UpdateObjectsEnqueues()
+		public void UpdateObjectsEnqueues()
         {
             while (_addNewObjectsQueue.Count > 0)
             {

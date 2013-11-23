@@ -1,0 +1,15 @@
+<Prefabs>
+	<Prefab name="Player">
+		<Component name="PlayerControl" Speed="5"/>
+		<Component name="Health" MaxHealth="20"/>
+		<Component name="DestroyOnDeath"/>
+	</Prefab>
+	<Prefab name="Enemy">
+		<Component name="EnemyControl" Speed="1"/>
+		<Component name="Health" MaxHealth="20"/>
+		<Component name="DestroyOnDeath"/>
+	</Prefab>
+	<Prefab name="GameControl">
+		<Component name="GameControlComponent"/>
+	</Prefab>
+</Prefabs>

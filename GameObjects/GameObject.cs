@@ -3,24 +3,28 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using BlueberryEngine.GameObjects.Messages;
+using Blueberry.GameObjects.Messages;
 using OpenTK;
 
-namespace BlueberryEngine.GameObjects
+namespace Blueberry.GameObjects
 {
 	public class GameObject
     {
-		public Transform Transform{ get; set;}
+		public GameObjectsManager GameObjectManager{ get; internal set;}
 
-        private List<Component> _components;
-        private List<IUpdatable> _updatableComponents;
-        private List<IDrawable> _drawableComponents;
+		public string Name;
 
-        public bool Active { get; set; }
-        public bool AutoChangeActivity { get; set; }
-		public int ObjectGroup { get;private set; }
+		public Transform Transform;
+
+		public bool Active;
+		public bool AutoChangeActivity;
+		public int ObjectGroup;
         
         public event EventHandler OnRemove;
+
+		private List<Component> _components;
+		private List<IUpdatable> _updatableComponents;
+		private List<IDrawable> _drawableComponents;
 
 		public GameObject(int objectGroup = 0)
         {
@@ -32,8 +36,20 @@ namespace BlueberryEngine.GameObjects
             AutoChangeActivity = true;
 
 			Transform = new Transform ();
+			_components.Add(Transform);
         }
 
+
+		public Component GetComponent(string name)
+		{
+			for (int i = 0; i < _components.Count; i++)
+			{
+				Component p = _components[i];
+				if (p.Name == name)
+					return p;
+			}
+			return null;
+		}
 
         public T GetComponent<T>() where T : Component
         {
@@ -133,5 +149,30 @@ namespace BlueberryEngine.GameObjects
                 OnRemove(this, EventArgs.Empty);
             OnRemove = null;
         }
+
+		public void ClearComponents()
+		{
+			_components.Clear();
+			_updatableComponents.Clear();
+			_drawableComponents.Clear();
+
+			Transform = null;
+		}
+
+		public GameObject Clone()
+		{
+			var clone = new GameObject();
+			clone.ClearComponents();
+
+			var components = new Component[_components.Count];
+
+			clone.Transform = (Transform)Transform.Clone();
+			components[0] = clone.Transform;
+			for (int i = 1; i < components.Length; i++)
+				components[i] = (Component)_components[i].Clone();
+
+			clone.AddComponents(components);
+			return clone;
+		}
     }
 }
