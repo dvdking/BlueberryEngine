@@ -57,14 +57,17 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="OpenTK">
-      <HintPath>D:\Dev\opentk\Binaries\OpenTK\Release\OpenTK.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Xml" />
+    <Reference Include="OpenTK">
+      <HintPath>Dependencies\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="NVorbis">
+      <HintPath>Dependencies\NVorbis.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Animations\Animation.cs" />
@@ -159,8 +162,6 @@
     <Compile Include="Graphics\VertexBuffer.cs" />
     <Compile Include="Graphics\SpriteBatch.cs" />
     <Compile Include="Graphics\Texture.cs" />
-    <Compile Include="Light.cs" />
-    <Compile Include="LightingSystem.cs" />
     <Compile Include="ListTimSort.cs" />
     <Compile Include="MathUtils.cs" />
     <Compile Include="Particles\MetaParticle.cs" />

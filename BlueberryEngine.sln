@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueberryEngine", "BlueberryEngine.csproj", "{0F82D590-BC4F-4D17-B8C5-6E18EA86C126}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NVorbis", "nvorbis\NVorbis\NVorbis.csproj", "{A372E591-DFEF-49C4-9C82-98C4361EFCCD}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug - Unsafe MDCT|Any CPU = Debug - Unsafe MDCT|Any CPU
@@ -21,14 +19,9 @@ Global
 		{0F82D590-BC4F-4D17-B8C5-6E18EA86C126}.Release - Unsafe MDCT|Any CPU.Build.0 = Release|Any CPU
 		{0F82D590-BC4F-4D17-B8C5-6E18EA86C126}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F82D590-BC4F-4D17-B8C5-6E18EA86C126}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A372E591-DFEF-49C4-9C82-98C4361EFCCD}.Debug - Unsafe MDCT|Any CPU.ActiveCfg = Debug - Unsafe MDCT|Any CPU
-		{A372E591-DFEF-49C4-9C82-98C4361EFCCD}.Debug - Unsafe MDCT|Any CPU.Build.0 = Debug - Unsafe MDCT|Any CPU
-		{A372E591-DFEF-49C4-9C82-98C4361EFCCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A372E591-DFEF-49C4-9C82-98C4361EFCCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A372E591-DFEF-49C4-9C82-98C4361EFCCD}.Release - Unsafe MDCT|Any CPU.ActiveCfg = Release - Unsafe MDCT|Any CPU
-		{A372E591-DFEF-49C4-9C82-98C4361EFCCD}.Release - Unsafe MDCT|Any CPU.Build.0 = Release - Unsafe MDCT|Any CPU
-		{A372E591-DFEF-49C4-9C82-98C4361EFCCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A372E591-DFEF-49C4-9C82-98C4361EFCCD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = BlueberryEngine.csproj
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
