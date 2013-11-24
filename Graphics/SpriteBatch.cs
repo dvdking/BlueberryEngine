@@ -51,8 +51,7 @@ namespace Blueberry.Graphics
         private Matrix4 proj;
         public Matrix4 Projection { get { return proj; } }
 
-        private int proj_uniform_loc;
-        private int view_uniform_loc;
+		private int wpv_uniform_location;
 
         #region Statistic
         private int elementsCounter = 0;
@@ -80,7 +79,7 @@ namespace Blueberry.Graphics
             if (Shader.Version < 3.3f)
             {
                 defaultShader.LoadVertexSource(@"#version 120
-                uniform mat4 projection, view;
+                uniform mat4 WPV;
                 attribute vec2 vposition; 
                 attribute vec4 vcolor; 
                 attribute vec2 vtexcoord;
@@ -90,7 +89,7 @@ namespace Blueberry.Graphics
                 {
                     fcolor = vcolor;
                     ftexcoord = vtexcoord;
-                    gl_Position = projection * view * vec4(vposition, 0, 1); 
+                    gl_Position = WPV * vec4(vposition, 0, 1); 
                 }");
 
                 defaultShader.LoadFragmentSource(@"#version 120
@@ -103,15 +102,15 @@ namespace Blueberry.Graphics
             else
             {
                 defaultShader.LoadVertexSource(@"#version 330 core
-                                    uniform mat4 projection, view;
+                                    uniform mat4 WPV;
                                     uniform int flip;
                                     in vec2 vposition; in vec4 vcolor; in vec2 vtexcoord;
                                     out vec4 fcolor; out vec2 ftexcoord;
                                     void main(void) {
                                     fcolor = vcolor;
                                     ftexcoord = vtexcoord;
-                                    gl_Position = projection * view * vec4(vposition, 0, 1); 
-                                    if(flip == 1) gl_Position.y *= -1; 
+                                    gl_Position = WPV * vec4(vposition, 0, 1); 
+                                    gl_Position.y *= flip; 
 									}");
                 defaultShader.LoadFragmentSource(@"#version 330 core
                                           uniform sampler2D colorTexture;
@@ -120,7 +119,7 @@ namespace Blueberry.Graphics
                                           void main(void) { color = texture(colorTexture, ftexcoord) * fcolor; }");
             }
             defaultShader.Link();
-            BindShader(this.defaultShader, "vposition", "vcolor", "vtexcoord", "projection", "view");
+			BindShader(this.defaultShader, "vposition", "vcolor", "vtexcoord", "WPV");
 
 
             int[] p = new int[4];
@@ -153,7 +152,7 @@ namespace Blueberry.Graphics
                 GL.DrawElements(mode, count, DrawElementsType.UnsignedInt, offset * sizeof(float));
         }
 
-        public void BindShader(Shader shader, string positionAttrib, string colorAttrib, string texcoordAttrib, string projectionUniform, string viewUniform)
+		public void BindShader(Shader shader, string positionAttrib, string colorAttrib, string texcoordAttrib, string wpv)
         {
             vbuffer.ClearAttributeDeclarations();
 
@@ -163,15 +162,14 @@ namespace Blueberry.Graphics
 
             vbuffer.Attach(shader);
 
-            proj_uniform_loc = GL.GetUniformLocation(shader.Program, projectionUniform);
-            view_uniform_loc = GL.GetUniformLocation(shader.Program, viewUniform);
+			wpv_uniform_location = GL.GetUniformLocation(shader.Program, wpv);
 
             shader.Use();
             current = shader;
         }
         public void ResetShader()
         {
-            BindShader(this.defaultShader, "vposition", "vcolor", "vtexcoord", "projection", "view");
+			BindShader(this.defaultShader, "vposition", "vcolor", "vtexcoord", "WPV");
         }
 
         private bool began = false; // if begin was called
@@ -201,9 +199,11 @@ namespace Blueberry.Graphics
             }
             if (current.Program != pr)
                 current.Use();
-            current.SetUniform(proj_uniform_loc, ref proj);
-            current.SetUniform(view_uniform_loc, ref trans);
-            current.SetUniform("flip", flip ? 1 : 0);
+
+			Matrix4 m = trans*proj;
+
+			current.SetUniform(wpv_uniform_location, ref m);
+			current.SetUniform("flip", flip ? -1 : 1);
             // nothing to do
             if (dipQueue.Count != 0)
             {
