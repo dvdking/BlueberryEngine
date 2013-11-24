@@ -9,13 +9,6 @@ namespace Example_Project
 	{
 		public static void Main (string[] args)
 		{
-			Task t = new Task(new Action(() =>
-			{
-					//PrefabMgr.Load("Content//Prefabs.xml",System.Reflection.Assembly.GetAssembly(typeof(MainClass)));
-				}));
-			//t.Start();
-
-
 			var game = new BlueberryGame (640, 480, "Example project", false, 0);
 			PrefabMgr.Load("Content//Prefabs.xml",System.Reflection.Assembly.GetAssembly(typeof(MainClass)));
 			DataGameFrame frame = new DataGameFrame("Content//GameFrames//GameplayFrame");

@@ -21,13 +21,7 @@ namespace Blueberry
 		public static BlueberryGame CurrentGame{get {return _current;}}
 		
 		private GameWindow _window;
-		protected KeyboardDevice Keyboard{get{return _window.Keyboard;}}
-		protected MouseDevice Mouse {get{return _window.Mouse;}}
-		
-		protected GamepadDevice[] Gamepads{get{return _gamepads;}}
-		protected GamepadDevice Gamepad{get{return _gamepads[0];}}
-		
-		GamepadDevice[] _gamepads;
+
 		
         //public bool CursorVisible
         //{
@@ -83,9 +77,8 @@ namespace Blueberry
 #if (WAV || OGG)
             new AudioManager(16, 8, 4096, true);
 #endif
-			_gamepads = new GamepadDevice[4];
-			for (int i = 0; i < 4; i++) 
-				_gamepads[i] = new GamepadDevice((UserIndex)i);
+			VSync = VSyncMode.Off;
+			InputMgr.Init(_window);
 			//_window.VSync = VSyncMode.On;
 			_window.UpdateFrame += InternalUpdate;
 			_window.RenderFrame += InternalRender;
@@ -150,7 +143,7 @@ namespace Blueberry
 		    GS.Delta = (float)e.Time;
             GS.Total += (float)e.Time;
 
-            Gamepad.Update(GS.Delta);
+			InputMgr.Update();
             
 			if(_currentFrame != null)
                 _currentFrame.Update(GS.Delta);
@@ -160,16 +153,12 @@ namespace Blueberry
 				if(_currentFrame != null)
 					_currentFrame.Unload();
 				_currentFrame = _nextFrame;
-                _currentFrame._keyboard = Keyboard;
-                _currentFrame._mouse = Mouse;
-                _currentFrame._gamepad = Gamepad;
-                _currentFrame._gamepads = Gamepads;
 				_currentFrame.Load();
 				_nextFrame = null;
 			}
 			#if DEBUG
             DiagnosticsCenter.Instance.Update(GS.Delta);
-			if (Keyboard[Key.Tilde])
+			if (InputMgr.Keyboard[Key.Tilde])
                 if (DiagnosticsCenter.Instance.Visible) DiagnosticsCenter.Instance.Hide();
                 else DiagnosticsCenter.Instance.Show();
             #endif

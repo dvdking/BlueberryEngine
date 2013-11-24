@@ -216,6 +216,7 @@
     <Compile Include="GameObjects\Components\SpriteRenderer.cs" />
     <Compile Include="ResourceMgr.cs" />
     <Compile Include="GameObjects\Transform.cs" />
+    <Compile Include="Input\Input.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="OpenAL32.dll">

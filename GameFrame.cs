@@ -1,4 +1,4 @@
-﻿﻿
+﻿
 using Blueberry.Input;
 using OpenTK.Input;
 using System;
@@ -12,17 +12,6 @@ namespace Blueberry
 	public class GameFrame
 	{
 		public bool Active { get; private set; }
-
-        internal KeyboardDevice _keyboard;
-        internal MouseDevice _mouse;
-        internal GamepadDevice _gamepad;
-        internal GamepadDevice[] _gamepads;
-
-        protected KeyboardDevice Keyboard { get { return _keyboard; }}
-        protected MouseDevice Mouse { get { return _mouse; } }
-
-        protected GamepadDevice[] Gamepads { get { return _gamepads; } }
-        protected GamepadDevice Gamepad { get { return _gamepad; } }
 
 		public GameFrame()
 		{
