@@ -26,11 +26,11 @@ namespace Example_Project
 		{
 			if (InputMgr.Keyboard[Key.W])
 			{
-				Transform.Y -= 100 * dt;
+				Transform.Y -= dt * Speed;
 			}
 			else if (InputMgr.Keyboard[Key.S])
 			{
-				Transform.Y += 100 * dt;
+				Transform.Y += dt * Speed;
 			}
 			if (InputMgr.Keyboard[Key.Space])
 			{

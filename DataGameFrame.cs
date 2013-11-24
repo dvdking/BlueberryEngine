@@ -34,6 +34,7 @@ namespace Blueberry
 			ResourceMgr.LoadResourcesXmlData(main);
 			LoadGameObjectsXmlData(main);
 
+			GL.ClearColor(Color4.CornflowerBlue);
         }
 
 		public override void Update(float dt)
@@ -44,7 +45,6 @@ namespace Blueberry
 		
 		public override void Render(float dt)
 		{
-			GL.ClearColor(Color4.CornflowerBlue);
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 			SpriteBatch.Please.Begin(_camera.GetViewMatrix());
 			_goManager.Draw(dt);

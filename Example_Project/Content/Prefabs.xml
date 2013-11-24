@@ -4,23 +4,19 @@
 	</ResourceConfigs>
 	<Prefab name="Player">
 		<Component name="Transform" Width="64" Height="64"/>
-		<Component name="PlayerControl" Speed="5"/>
-		<Component name="Health" MaxHealth="20"/>
-		<Component name="DestroyOnDeath"/>
+		<Component name="PlayerControl" Speed="250"/>
 		<Component name="SpriteRenderer" Texture="SomeGuy"/>
 		<Component name="CircleCollider" Radius="32"/>
 	</Prefab>
 	<Prefab name="Enemy">
 		<Component name="Transform" Width="64" Height="64"/>
 		<Component name="EnemyControl" Speed="0.8" BottomPos="236" UpperPos="-236"/>
-		<Component name="Health" MaxHealth="20"/>
-		<Component name="DestroyOnDeath"/>
 		<Component name="SpriteRenderer" Texture="SomeBadGuy"/>
 		<Component name="CircleCollider" Radius="32"/>
 	</Prefab>
 	<Prefab name="Bullet">
 		<Component name="Transform" Width="8" Height="8"/>
-		<Component name="BulletControl" Speed="5"/>
+		<Component name="BulletControl" Speed="1550"/>
 		<Component name="SpriteRenderer" Texture="SomeBadGuy"/>
 		<Component name="CircleCollider" Radius="4"/>
 	</Prefab>

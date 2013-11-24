@@ -2,6 +2,7 @@ using System;
 using Blueberry.GameObjects;
 using OpenTK;
 using System.Diagnostics;
+using Blueberry;
 
 namespace Example_Project
 {
@@ -13,7 +14,7 @@ namespace Example_Project
 
 		public void Update(float dt)
 		{
-			Owner.Transform.Position += Transform.RotationVector * Speed;
+			Owner.Transform.Position += Transform.RotationVector * Speed * GS.Delta;
 		}
 
 		#endregion

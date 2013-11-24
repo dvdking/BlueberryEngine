@@ -73,7 +73,11 @@ namespace Blueberry
 			foreach (var item in resourcesFilesNames)
 			{
 				LoadResources(basePath + "//" + item + ".xml");
-				_loadedResources.Add(item);
+
+				if (!_loadedResources.Contains(item))
+				{
+					_loadedResources.Add(item);
+				}
 			}
 		}
 
