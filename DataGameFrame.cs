@@ -5,6 +5,8 @@ using System.Xml;
 using Blueberry.GameObjects;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics;
+using System.Collections.Generic;
+using Blueberry.Graphics;
 
 
 namespace Blueberry
@@ -24,44 +26,11 @@ namespace Blueberry
 			file.Load(path);
 		
 			XmlNode main = file.SelectSingleNode("Frame");
-			XmlNode gameObjectsNode = main.SelectSingleNode("GameObjects");
-			XmlNodeList gameObjects = gameObjectsNode.SelectNodes("GameObject");
-			foreach (XmlNode go in gameObjects)
-			{
-				string prefabName = go.Attributes["prefab"].Value;
-				string objectName = go.Attributes["name"].Value;
 
-				GameObject gameObject = PrefabMgr.Create(prefabName);
-				gameObject.Name = objectName;
+			ResourceMgr.LoadResourcesXmlData(main);
 
-				_goManager.AddObject(gameObject);
-			}
-			_goManager.UpdateObjectsEnqueues();
+			LoadGameObjectsXmlData(main);
 
-			foreach (XmlNode go in gameObjects)
-			{
-				string objectName = go.Attributes["name"].Value;
-
-				GameObject gameObject = _goManager.GetByName(objectName);
-
-				XmlNodeList components = go.SelectNodes("Component");
-				foreach (XmlNode c in components)
-				{
-					string componentName = c.Attributes["name"].Value;
-
-					Component comp = gameObject.GetComponent(componentName);
-
-					for (int i = 1; i < c.Attributes.Count; i++)
-					{
-						var attributeName = c.Attributes[i].Name;
-						var attributeValue = c.Attributes[i].Value;
-
-						comp.SetFieldValue(attributeName, attributeValue);
-					}
-
-					gameObject.AddComponents(comp);
-				}
-			}
         }
 
 		public override void Update(float dt)
@@ -74,10 +43,45 @@ namespace Blueberry
 		{
 			GL.ClearColor(Color4.CornflowerBlue);
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+			SpriteBatch.Please.Begin(_camera.GetViewMatrix());
 			_goManager.Draw(dt);
+			SpriteBatch.Please.End();
 			base.Render(dt);
 		}
+	
 
+		void LoadGameObjectsXmlData(XmlNode main)
+		{
+			XmlNode gameObjectsNode = main.SelectSingleNode("GameObjects");
+			XmlNodeList gameObjects = gameObjectsNode.SelectNodes("GameObject");
+			foreach (XmlNode go in gameObjects)
+			{
+				string prefabName = go.Attributes["prefab"].Value;
+				string objectName = go.Attributes["name"].Value;
+				GameObject gameObject = PrefabMgr.Create(prefabName);
+				gameObject.Name = objectName;
+				_goManager.AddObject(gameObject);
+			}
+			_goManager.UpdateObjectsEnqueues();
+			foreach (XmlNode go in gameObjects)
+			{
+				string objectName = go.Attributes["name"].Value;
+				GameObject gameObject = _goManager.GetByName(objectName);
+				XmlNodeList components = go.SelectNodes("Component");
+				foreach (XmlNode c in components)
+				{
+					string componentName = c.Attributes["name"].Value;
+					Component comp = gameObject.GetComponent(componentName);
+					for (int i = 1; i < c.Attributes.Count; i++)
+					{
+						var attributeName = c.Attributes[i].Name;
+						var attributeValue = c.Attributes[i].Value;
+						comp.SetFieldValue(attributeName, attributeValue);
+					}
+					gameObject.AddComponents(comp);
+				}
+			}
+		}
     }
 }
 

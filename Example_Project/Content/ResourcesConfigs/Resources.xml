@@ -1,0 +1,6 @@
+<Resources aditionalResources="">
+	<Textures basePath="Content//Textures">
+		<Texture gameName="SomeGuy" fileName="SomeGuy.png"/>
+		<Texture gameName="SomeBadGuy" fileName="SomeBadGuy.png"/>
+	</Textures>
+</Resources>

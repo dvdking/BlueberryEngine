@@ -9,36 +9,25 @@ namespace Blueberry.GameObjects
 {
 	public class Transform:Component
     {
-        private float _x, _y;
+		public float X, Y;
+
+		public float Rotation;
 
         public Vector2 Position
         {
-            get { return new Vector2(_x, _y); }
+			get { return new Vector2(X, Y); }
             set
             {
-                _x = value.X;
-                _y = value.Y;
+				X = value.X;
+				Y = value.Y;
             }
         }
 
-        public Point Cell
+		public float Width, Height;
+		public SizeF Size
         {
-            get
-            {
-                return new Point((int)(Position.X / 64), (int)(Position.Y / 64));
-            }
-            set
-            {
-
-                _x = value.X * 64 + Size.Width / 2; _y = value.Y * 64 + Size.Height / 2;
-            }
-        }
-
-        private Size _size;
-        public Size Size
-        {
-            get { return new Size(_size.Width, _size.Height); }
-            set { _size.Width = value.Width; _size.Height = value.Height; }
+			get { return new SizeF(Width, Height); }
+			set { Width = value.Width; Height = value.Height; }
         }
 
         public virtual RectangleF Bounds
@@ -58,16 +47,5 @@ namespace Blueberry.GameObjects
         public float Right { get { return Bounds.Right; } }
         public float Top { get { return Bounds.Top; } }
         public float Bottom { get { return Bounds.Bottom; } }
-
-
-        
-		public Transform()
-        {
-        }
-
-        public override void ProccesMessage(Messages.IMessage message)
-        {
-
-        }
     }
 }

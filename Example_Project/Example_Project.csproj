@@ -56,10 +56,19 @@
     <Folder Include="Components\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Content\GameplayFrame.xml">
+    <None Include="Content\Prefabs.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Content\Prefabs.xml">
+    <None Include="Content\GameFrames\GameplayFrame.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\ResourcesConfigs\Resources.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Textures\SomeBadGuy.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Textures\SomeGuy.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

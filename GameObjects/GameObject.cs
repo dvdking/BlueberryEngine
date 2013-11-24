@@ -16,7 +16,7 @@ namespace Blueberry.GameObjects
 
 		public Transform Transform;
 
-		public bool Active;
+		public bool Active = true;
 		public bool AutoChangeActivity;
 		public int ObjectGroup;
         
@@ -33,7 +33,7 @@ namespace Blueberry.GameObjects
             _drawableComponents = new List<IDrawable>();
 
             ObjectGroup = objectGroup;
-            AutoChangeActivity = true;
+			AutoChangeActivity = false;
 
 			Transform = new Transform ();
 			_components.Add(Transform);
@@ -87,6 +87,10 @@ namespace Blueberry.GameObjects
                 {
                     _drawableComponents.Add((IDrawable)component);
                 }
+				if (component is IQuadTreeItem)
+				{
+					GameObjectManager.QuadTree.Insert(component as IQuadTreeItem);
+				}
             }
             foreach (Component component in components)
             {
@@ -112,14 +116,17 @@ namespace Blueberry.GameObjects
             }
         }
 
-        public void SendMessage(IMessage message)
-        {
-            for (int index = 0; index < _components.Count; index++)
-            {
-                var component = _components[index];
-                component.ProccesMessage(message);
-            }
-        }
+		public void SendMessage(string Name, params object[] values)
+		{
+			foreach (var item in _components)
+			{
+				var method = item.MessagesMethods.Find(p => p.Name == Name);
+				if (method != null)
+				{
+					method.Invoke(item, values);
+				}
+			}
+		}
 
         public void RemoveComponent<T>() where T : Component
         {
@@ -135,6 +142,10 @@ namespace Blueberry.GameObjects
                 {
                     _drawableComponents.Remove((IDrawable)component);
                 }
+				if (component is IDisposable)
+				{
+					(component as IDisposable).Dispose();
+				}
             }
         }
 
@@ -145,8 +156,10 @@ namespace Blueberry.GameObjects
                 if(component is IDisposable)
                     (component as IDisposable).Dispose();
             }
-            if (OnRemove != null)
-                OnRemove(this, EventArgs.Empty);
+			if (OnRemove != null)
+			{
+				OnRemove(this, EventArgs.Empty);
+			}
             OnRemove = null;
         }
 

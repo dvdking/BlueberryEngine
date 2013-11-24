@@ -6,11 +6,15 @@ using Blueberry.GameObjects.Messages;
 using System.ComponentModel;
 using System.Reflection;
 using System.Drawing;
+using System.Runtime.CompilerServices;
+using Blueberry.Graphics;
 
 namespace Blueberry.GameObjects
 {
     public abstract class Component
     {
+		internal List<MethodInfo> MessagesMethods = new List<MethodInfo>();
+
 		public readonly string Name;
 
 		public FieldInfo[] Fields { get; protected set; }
@@ -44,10 +48,12 @@ namespace Blueberry.GameObjects
         {
 			Fields = GetType().GetFields();
 			Name = GetType().Name;
+
+			MessagesMethods = GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public).ToList();
         }
 
-
-		public virtual void ProccesMessage(IMessage message){
+		public virtual void Init()
+		{
 		}
 
         public virtual bool GetDependicies()
@@ -85,6 +91,10 @@ namespace Blueberry.GameObjects
 			{
 					this[fieldName] = Owner.GameObjectManager.GetByName(fieldValue);
 					return true;
+			}
+			if (info.FieldType == typeof(Texture))
+			{
+				this[fieldName] = ResourceMgr.GetTexture(fieldValue);
 			}
 
 			return false;

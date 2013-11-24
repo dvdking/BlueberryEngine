@@ -37,6 +37,9 @@ namespace Blueberry
 			file.Load(path);
 
 			XmlNode main = file.SelectSingleNode("Prefabs");
+
+			ResourceMgr.LoadResourcesXmlData(main);
+
 			XmlNodeList gameObjects = main.SelectNodes("Prefab");
 			foreach (XmlNode go in gameObjects)
 			{

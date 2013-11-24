@@ -2,11 +2,22 @@
 using System.Drawing;
 using OpenTK;
 using Blueberry.Geometry;
+using Blueberry.GameObjects.Components;
 
 namespace Blueberry
 {
     public static class Extentions
     {
+		public static bool Contains(this Rectangle r, IQuadTreeCollider circle)
+		{
+			if (circle is CircleCollider)
+			{
+				var c = circle as CircleQuadTreeCollider;
+				return c.Circle.Contains(r);
+			}
+			return false;
+		}
+
         public static bool Contains(this Rectangle r, Circle circle)
         {
             return (r.X > circle.X - circle.Radius || r.Right < circle.X + circle.Radius || r.Y > circle.Y - circle.Radius || r.Bottom < circle.Y - circle.Radius);

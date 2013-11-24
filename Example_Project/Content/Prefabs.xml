@@ -1,13 +1,20 @@
 <Prefabs>
+	<ResourceConfigs basePath="Content//ResourcesConfigs">
+		<Resource name="Resources"/>
+	</ResourceConfigs>
 	<Prefab name="Player">
+		<Component name="Transform" Width="64" Height="64"/>
 		<Component name="PlayerControl" Speed="5"/>
 		<Component name="Health" MaxHealth="20"/>
 		<Component name="DestroyOnDeath"/>
+		<Component name="SpriteRenderer" Texture="SomeGuy"/>
 	</Prefab>
 	<Prefab name="Enemy">
+		<Component name="Transform" Width="64" Height="64"/>
 		<Component name="EnemyControl" Speed="1"/>
 		<Component name="Health" MaxHealth="20"/>
 		<Component name="DestroyOnDeath"/>
+		<Component name="SpriteRenderer" Texture="SomeBadGuy"/>
 	</Prefab>
 	<Prefab name="GameControl">
 		<Component name="GameControlComponent"/>

@@ -171,8 +171,6 @@
     <Compile Include="Particles\Shapes\PointShape.cs" />
     <Compile Include="Particles\Shapes\RectangleShape.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QuadTree.cs" />
-    <Compile Include="QuadTreeNode.cs" />
     <Compile Include="RandomTool.cs" />
     <Compile Include="Range.cs" />
     <Compile Include="SceneManagement\Actor.cs" />
@@ -202,7 +200,6 @@
     <Compile Include="Audio\AudioReader.cs" />
     <Compile Include="Audio\OggAudioReader.cs" />
     <Compile Include="Audio\AudioHelper.cs" />
-    <Compile Include="GameObjects\BoundaryComponent.cs" />
     <Compile Include="GameObjects\Component.cs" />
     <Compile Include="GameObjects\GameObject.cs" />
     <Compile Include="GameObjects\GameObjectsManager.cs" />
@@ -212,6 +209,13 @@
     <Compile Include="Settings.cs" />
     <Compile Include="GameObjects\PrefabMgr.cs" />
     <Compile Include="DataGameFrame.cs" />
+    <Compile Include="GameObjects\Components\CircleCollider.cs" />
+    <Compile Include="QuadTree\QuadTreeNode.cs" />
+    <Compile Include="QuadTree\QuadTree.cs" />
+    <Compile Include="QuadTree\IQuadTreeCollider.cs" />
+    <Compile Include="GameObjects\Components\SpriteRenderer.cs" />
+    <Compile Include="ResourceMgr.cs" />
+    <Compile Include="GameObjects\Transform.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="OpenAL32.dll">
@@ -227,7 +231,8 @@
   <ItemGroup>
     <Folder Include="ComponentModel\Systems\" />
     <Folder Include="GameObjects\" />
-    <Folder Include="GameObjects\Components\AnimationComponents\" />
+    <Folder Include="GameObjects\Components\" />
+    <Folder Include="QuadTree\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

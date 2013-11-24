@@ -1,6 +1,10 @@
 <Frame>
+	<ResourceConfigs basePath="Content//ResourcesConfigs">
+		<Resource name="Resources"/>
+	</ResourceConfigs>
 	<GameObjects>
 		<GameObject prefab="Player" name="Player">
+			<Component name="Transform" X="64" Y="64"/>
 			<Component name="PlayerControl" Speed="5"/>
 			<Component name="Health" MaxHealth="15"/>
 		</GameObject>

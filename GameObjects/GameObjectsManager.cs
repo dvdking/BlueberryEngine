@@ -12,6 +12,8 @@ namespace Blueberry.GameObjects
 {
     public class GameObjectsManager
     {
+		public readonly QuadTree<IQuadTreeItem> QuadTree;
+
         private List<GameObject> _gameObjects;
         private Queue<GameObject> _addNewObjectsQueue;
         private Queue<GameObject> _deleteObjectsQueue;
@@ -26,6 +28,8 @@ namespace Blueberry.GameObjects
             _gameObjects = new List<GameObject>(150);
             _addNewObjectsQueue = new Queue<GameObject>(150);
             _deleteObjectsQueue = new Queue<GameObject>(150);
+
+			QuadTree = new QuadTree<IQuadTreeItem>(new Rectangle(0, 0, 1024, 1024));
 		}
 
 		public GameObject GetByName(string name)
@@ -38,6 +42,7 @@ namespace Blueberry.GameObjects
             if (gameObject == null) throw new ArgumentNullException("gameObject");
             _addNewObjectsQueue.Enqueue(gameObject);
 			gameObject.GameObjectManager = this;
+
         }
 
         public void RemoveObject(GameObject gameObject)
@@ -57,11 +62,11 @@ namespace Blueberry.GameObjects
         }
 
 
-        public void SendGlobalMessage(IMessage message)
+		public void SendGlobalMessage(string message, params object[] values)
         {
             foreach (var gameObject in _gameObjects)
             {
-                gameObject.SendMessage(message);
+				gameObject.SendMessage(message, values);
             }
         }
 

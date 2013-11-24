@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using OpenTK;
+using System.Runtime.InteropServices;
 
 namespace Blueberry.Geometry
 {
@@ -13,6 +14,7 @@ namespace Blueberry.Geometry
         public Vector2 Position
         {
             get { return new Vector2(X, Y); }
+			set { X = value.X; Y = value.Y; }
         }
 
         public Rectangle Rectangle
