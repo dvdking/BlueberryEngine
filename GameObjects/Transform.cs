@@ -13,6 +13,19 @@ namespace Blueberry.GameObjects
 
 		public float Rotation;
 
+		public Vector2 RotationVector
+		{
+			get
+			{
+				return new 	Vector2((float)Math.Cos(Owner.Transform.Rotation),
+									(float)Math.Sin(Owner.Transform.Rotation));
+			}
+			set
+			{
+				Rotation = (float)Math.Atan2(value.Y, value.X);
+			}
+		}
+
         public Vector2 Position
         {
 			get { return new Vector2(X, Y); }

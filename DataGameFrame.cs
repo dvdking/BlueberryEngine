@@ -18,7 +18,11 @@ namespace Blueberry
 
 		public DataGameFrame(string name)
         {
-			_camera = new Camera(new System.Drawing.Size(640, 480), new System.Drawing.Point(0, 0), true);//fix this shit
+			var w = BlueberryGame.CurrentGame.Window.Width;
+			var h = BlueberryGame.CurrentGame.Window.Height;
+
+			_camera = new Camera(new System.Drawing.Size(w, h),
+								 new System.Drawing.Point(0, 0), true);
 			_goManager = new GameObjectsManager(_camera);
 
 			var path = name + ".xml";
@@ -28,7 +32,6 @@ namespace Blueberry
 			XmlNode main = file.SelectSingleNode("Frame");
 
 			ResourceMgr.LoadResourcesXmlData(main);
-
 			LoadGameObjectsXmlData(main);
 
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using Blueberry.Geometry;
 using OpenTK;
+using Blueberry.GameObjects.Components;
 
 namespace Blueberry
 {
@@ -107,6 +108,14 @@ namespace Blueberry
         #endregion Insertion
 
         #region Query
+
+		public void Query(IQuadTreeCollider collider, ref List<T> itemsList)
+		{
+			if (itemsList != null)
+			{
+				itemsList = rootNode.Query(collider);
+			}
+		}
 
         /// <summary>Метод делает запрос на элементы</summary>
         /// <param name="queryPoint">Ссылка на точку, которую содержат элементы</param>

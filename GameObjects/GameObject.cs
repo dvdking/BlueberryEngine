@@ -10,6 +10,9 @@ namespace Blueberry.GameObjects
 {
 	public class GameObject
     {
+		public bool IsDestroyed{get; internal set;}
+		public bool IsPrefab;
+
 		public GameObjectsManager GameObjectManager{ get; internal set;}
 
 		public string Name;
@@ -39,6 +42,19 @@ namespace Blueberry.GameObjects
 			_components.Add(Transform);
         }
 
+		public GameObject CreateInstance(string name)
+		{
+			var obj = PrefabMgr.Create(name);
+			GameObjectManager.AddObject(obj);
+			return obj;
+		}
+
+		public void Destroy(GameObject gameObject)
+		{
+			GameObjectManager.RemoveObject(gameObject);
+			IsDestroyed = true;
+		}
+
 
 		public Component GetComponent(string name)
 		{
@@ -61,6 +77,11 @@ namespace Blueberry.GameObjects
             }
             return default(T);
         }
+
+		public List<Component> GetComponents()
+		{
+			return _components.ToList();
+		}
 
         public List<T> GetComponents<T>() where T : Component
         {
@@ -87,10 +108,8 @@ namespace Blueberry.GameObjects
                 {
                     _drawableComponents.Add((IDrawable)component);
                 }
-				if (component is IQuadTreeItem)
-				{
-					GameObjectManager.QuadTree.Insert(component as IQuadTreeItem);
-				}
+
+				component.Init();
             }
             foreach (Component component in components)
             {

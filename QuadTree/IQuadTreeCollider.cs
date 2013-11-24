@@ -8,6 +8,7 @@ namespace Blueberry
 	public interface IQuadTreeCollider
     {
 		Rectangle Bounds { get;}
+		Circle Circle {get;}
 
 		bool Collides(IQuadTreeCollider collider);
 

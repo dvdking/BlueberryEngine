@@ -8,6 +8,8 @@ using System.Reflection;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using Blueberry.Graphics;
+using OpenTK;
+using Blueberry.Graphics.Fonts;
 
 namespace Blueberry.GameObjects
 {
@@ -18,6 +20,8 @@ namespace Blueberry.GameObjects
 		public readonly string Name;
 
 		public FieldInfo[] Fields { get; protected set; }
+
+		public Transform Transform{get{ return Owner.Transform;}}
 
 		public object this[string name]
 		{
@@ -49,8 +53,25 @@ namespace Blueberry.GameObjects
 			Fields = GetType().GetFields();
 			Name = GetType().Name;
 
-			MessagesMethods = GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public).ToList();
+			MessagesMethods = GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public |BindingFlags.Instance).ToList();
         }
+
+		public GameObject CreateInstance(string name)
+		{
+			return Owner.CreateInstance(name);
+		}
+
+		public GameObject CreateInstance(string name, Vector2 position)
+		{
+			var obj = Owner.CreateInstance(name);
+			obj.Transform.Position = position;
+			return obj;
+		}
+
+		public void Destroy(GameObject gameObject)
+		{
+			Owner.Destroy(gameObject);
+		}
 
 		public virtual void Init()
 		{
@@ -95,6 +116,10 @@ namespace Blueberry.GameObjects
 			if (info.FieldType == typeof(Texture))
 			{
 				this[fieldName] = ResourceMgr.GetTexture(fieldValue);
+			}
+			if (info.FieldType == typeof(BitmapFont))
+			{
+				this[fieldName] = ResourceMgr.GetFont(fieldValue);
 			}
 
 			return false;

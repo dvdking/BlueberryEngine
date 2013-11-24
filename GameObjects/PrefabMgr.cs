@@ -47,6 +47,7 @@ namespace Blueberry
 
 				GameObject gameObject = new GameObject();
 				gameObject.Name = prefabName;
+				gameObject.IsPrefab = true;
 				_prefabs.Add(gameObject);
 			}
 

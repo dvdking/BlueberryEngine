@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using Blueberry.Geometry;
 using OpenTK;
+using Blueberry.GameObjects.Components;
 
 namespace Blueberry
 {
@@ -152,6 +153,15 @@ namespace Blueberry
         #endregion Initialize
 
         #region Query
+
+		public List<T> Query(IQuadTreeCollider collider)
+		{
+			if (collider is CircleQuadTreeCollider)
+			{
+				return Query(collider.Circle);
+			}
+			return null;
+		}
 
         /// <summary>Метод делает запрос на элементы</summary>
         /// <param name="queryArea">Прямоугольник, в область которого должны входить элементы</param>

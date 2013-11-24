@@ -6,79 +6,23 @@ using System.Drawing;
 
 namespace Blueberry.GameObjects.Components
 {
-	public class CircleCollider:Component, IQuadTreeItem, IUpdatable, IDisposable
+	public class CircleCollider:ColliderComponent
     {
-		public Vector2 Offset;
 		public float Radius;
 
-		private CircleQuadTreeCollider _circle;
-		private Vector2 _oldPosition;
-
-		bool _hasCollisionListeners = false;
+		private CircleQuadTreeCollider _circle{get { return QuadTreeCollider as CircleQuadTreeCollider;}}
 
         public CircleCollider()
         {
-			_circle = new CircleQuadTreeCollider();
+			QuadTreeCollider = new CircleQuadTreeCollider();
         }
 
-		public override void Init()
+		protected override void UpdateCollider()
 		{
-			foreach (var item in MessagesMethods)
-			{
-				if (item.Name == "OnTriggerEnter")
-				{
-					_hasCollisionListeners = true;
-					break;
-				}
-			}
+			QuadTreeCollider = new CircleQuadTreeCollider();
+			_circle.Circle.Position = Owner.Transform.Position + Offset;
+			_circle.Circle.Radius = Radius;
 		}
-
-		private void UpdateCilliderData()
-		{
-			if (_oldPosition != Owner.Transform.Position)
-			{
-				_circle = new CircleQuadTreeCollider();
-				_circle.Circle.Position = Owner.Transform.Position + Offset;
-				_circle.Circle.Radius = Radius;
-				_oldPosition = Owner.Transform.Position;
-				OnPositionChange(this);
-			}
-		}
-
-		#region IUpdatable implementation
-		public void Update(float dt)
-		{
-			UpdateCilliderData();
-			if (_hasCollisionListeners)
-			{
-				var collisions = Owner.GameObjectManager.QuadTree.Query(_circle.Circle);
-				if (collisions.Count != 0)
-				{
-					Owner.SendMessage("OnTriggerEnter", this, collisions);
-				}
-			}
-		}
-		#endregion
-
-		#region IQuadTreeItem implementation
-		public event PositionChangeHandler OnPositionChange;
-		public event RemoveFromSceneHandler OnRemoveFromScene;
-		public IQuadTreeCollider Collider
-		{
-			get
-			{
-				UpdateCilliderData();// in case something changed position during collision checking
-				return _circle;
-			}
-		}
-		#endregion
-
-		#region IDisposable implementation
-		public void Dispose()
-		{
-			OnRemoveFromScene(this);
-		}
-		#endregion
     }
 
 	public class CircleQuadTreeCollider:IQuadTreeCollider
@@ -86,7 +30,7 @@ namespace Blueberry.GameObjects.Components
 		public Circle Circle;
 
 		public Rectangle Bounds{get{ return Circle.Rectangle;}}
-
+		Circle IQuadTreeCollider.Circle{get{ return Circle;}}
 		public bool Collides(IQuadTreeCollider collider)
 		{
 			if (collider is CircleQuadTreeCollider)

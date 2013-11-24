@@ -7,12 +7,13 @@ using Blueberry.Geometry;
 using Blueberry.GameObjects.Messages;
 using Blueberry;
 using System.Drawing;
+using Blueberry.GameObjects.Components;
 
 namespace Blueberry.GameObjects
 {
     public class GameObjectsManager
     {
-		public readonly QuadTree<IQuadTreeItem> QuadTree;
+		public readonly QuadTree<ColliderComponent> QuadTree;
 
         private List<GameObject> _gameObjects;
         private Queue<GameObject> _addNewObjectsQueue;
@@ -29,7 +30,7 @@ namespace Blueberry.GameObjects
             _addNewObjectsQueue = new Queue<GameObject>(150);
             _deleteObjectsQueue = new Queue<GameObject>(150);
 
-			QuadTree = new QuadTree<IQuadTreeItem>(new Rectangle(0, 0, 1024, 1024));
+			QuadTree = new QuadTree<ColliderComponent>(new Rectangle(0, 0, 1024, 1024));
 		}
 
 		public GameObject GetByName(string name)
@@ -43,6 +44,12 @@ namespace Blueberry.GameObjects
             _addNewObjectsQueue.Enqueue(gameObject);
 			gameObject.GameObjectManager = this;
 
+
+			var components = gameObject.GetComponents<ColliderComponent>();
+			foreach (var item in components)
+			{
+				QuadTree.Insert(item as ColliderComponent);
+			}
         }
 
         public void RemoveObject(GameObject gameObject)

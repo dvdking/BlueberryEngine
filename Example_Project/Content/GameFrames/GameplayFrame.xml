@@ -4,16 +4,13 @@
 	</ResourceConfigs>
 	<GameObjects>
 		<GameObject prefab="Player" name="Player">
-			<Component name="Transform" X="64" Y="64"/>
-			<Component name="PlayerControl" Speed="5"/>
-			<Component name="Health" MaxHealth="15"/>
+			<Component name="Transform" X="-256" Y="0"/>
 		</GameObject>
 		<GameObject prefab="Enemy" name="Enemy">
-			<Component name="EnemyControl" Speed="1"/>
-			<Component name="Health" MaxHealth="5"/>
+			<Component name="Transform" X="256" Y="0"/>
 		</GameObject>
 		<GameObject prefab="GameControl" name="GameControl">
-			<Component name="GameControlComponent" Player="Player"/>
+			<Component name="GameControlComponent" Player="Player" Enemy="Enemy"/>
 		</GameObject>
 	</GameObjects>
 </Frame>

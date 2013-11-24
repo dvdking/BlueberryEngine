@@ -3,4 +3,7 @@
 		<Texture gameName="SomeGuy" fileName="SomeGuy.png"/>
 		<Texture gameName="SomeBadGuy" fileName="SomeBadGuy.png"/>
 	</Textures>
+	<Fonts basePath="Content//Fonts">
+		<Font gameName="monofur_16" fileName="monofur.ttf" size="76"/>
+	</Fonts>
 </Resources>

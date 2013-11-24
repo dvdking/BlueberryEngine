@@ -34,6 +34,7 @@
     <Reference Include="OpenTK">
       <HintPath>..\Dependencies\OpenTK.dll</HintPath>
     </Reference>
+    <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -43,6 +44,8 @@
     <Compile Include="Components\Health.cs" />
     <Compile Include="Components\GameControlComponent.cs" />
     <Compile Include="Components\DestroyOnDeath.cs" />
+    <Compile Include="Components\BulletControl.cs" />
+    <Compile Include="Components\Side.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -54,6 +57,7 @@
   <ItemGroup>
     <Folder Include="Content\" />
     <Folder Include="Components\" />
+    <Folder Include="Content\Fonts\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\Prefabs.xml">
@@ -69,6 +73,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Content\Textures\SomeGuy.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Fonts\monofur.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
