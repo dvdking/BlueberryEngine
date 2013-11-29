@@ -51,6 +51,7 @@ ipch/
 
 # Guidance Automation Toolkit
 *.gpState
+*.userprefs
 
 # ReSharper is a .NET coding add-in
 _ReSharper*

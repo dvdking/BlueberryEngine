@@ -10,7 +10,7 @@
 	</Prefab>
 	<Prefab name="Enemy">
 		<Component name="Transform" Width="64" Height="64"/>
-		<Component name="EnemyControl" Speed="0.8" BottomPos="236" UpperPos="-236"/>
+		<Component name="EnemyControl" Speed="0,8" BottomPos="236" UpperPos="-236"/>
 		<Component name="SpriteRenderer" Texture="SomeBadGuy"/>
 		<Component name="CircleCollider" Radius="32"/>
 	</Prefab>
