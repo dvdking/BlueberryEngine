@@ -18,6 +18,8 @@ namespace Blueberry.Graphics
 
         public int Program { get { return _program; } }
 
+		public Dictionary<string, int> _uniformLocations;
+
         public static float Version 
         {
             get
@@ -59,48 +61,49 @@ namespace Blueberry.Graphics
             _fragment = 0;
             _geometry = 0;
             _program = GL.CreateProgram();
+			_uniformLocations = new Dictionary<string, int> ();
         }
 
         #region set uniforms
 
         public void SetUniform(string uniformName, int value)
         {
-            int uniformLocation = GL.GetUniformLocation(_program, uniformName);
+			int uniformLocation = GetUniformLocation (uniformName);
             if (uniformLocation != -1)
                 GL.Uniform1(uniformLocation, value);
         }
 
         public void SetUniform(string uniformName, float value)
         {
-            int uniformLocation = GL.GetUniformLocation(_program, uniformName);
+			int uniformLocation =  GetUniformLocation (uniformName);
             if (uniformLocation != -1)
                 GL.Uniform1(uniformLocation, value);
         }
 
         public void SetUniform(string uniformName, ref  Vector2 value)
         {
-            int uniformLocation = GL.GetUniformLocation(_program, uniformName);
+			int uniformLocation =  GetUniformLocation (uniformName);
             if (uniformLocation != -1)
                 GL.Uniform2(uniformLocation, ref value);
         }
 
         public void SetUniform(string uniformName, ref  Vector3 value)
         {
-            int uniformLocation = GL.GetUniformLocation(_program, uniformName);
+			int uniformLocation =  GetUniformLocation (uniformName);
             if (uniformLocation != -1)
                 GL.Uniform3(uniformLocation, ref value);
         }
 
         public void SetUniform(string uniformName, ref  Vector4 value)
         {
-            int uniformLocation = GL.GetUniformLocation(_program, uniformName);
+			int uniformLocation = GetUniformLocation (uniformName);
             if (uniformLocation != -1)
                 GL.Uniform4(uniformLocation, ref value);
         }
 
         public void SetUniform(string uniformName, ref Matrix4 value)
         {
-            int uniformLocation = GL.GetUniformLocation(_program, uniformName);
+			int uniformLocation = GetUniformLocation (uniformName);
             if (uniformLocation != -1)
                 GL.UniformMatrix4(uniformLocation, false, ref value);
         }
@@ -249,6 +252,14 @@ namespace Blueberry.Graphics
                 throw new Exception(buffer);
             }
         }
+
+		private int GetUniformLocation(string name)
+		{
+			if (_uniformLocations.ContainsKey (name))
+				_uniformLocations [name] = GL.GetUniformLocation (Program, name);
+			return _uniformLocations [name];
+		}
+
 
         public void Dispose()
         {

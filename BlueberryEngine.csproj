@@ -219,6 +219,7 @@
     <Compile Include="Input\Input.cs" />
     <Compile Include="Timer.cs" />
     <Compile Include="GameObjects\Components\ColliderComponent.cs" />
+    <Compile Include="Graphics\Material.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="OpenAL32.dll">
