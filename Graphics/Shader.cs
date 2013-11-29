@@ -255,7 +255,7 @@ namespace Blueberry.Graphics
 
 		private int GetUniformLocation(string name)
 		{
-			if (_uniformLocations.ContainsKey (name))
+			if (!!!_uniformLocations.ContainsKey (name))
 				_uniformLocations [name] = GL.GetUniformLocation (Program, name);
 			return _uniformLocations [name];
 		}

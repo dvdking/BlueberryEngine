@@ -21,7 +21,7 @@ namespace Blueberry
 		public void Draw(float dt)
 		{
 			var t = Owner.Transform;
-			SpriteBatch.Please.DrawTexture(Texture, t.Position.X, t.Position.Y, t.Size.Width, t.Size.Height, Texture.Bounds, Color, t.Rotation);
+			SpriteBatch.Please.DrawTexture(Texture, null, t.Position.X, t.Position.Y, t.Size.Width, t.Size.Height, Texture.Bounds, Color, t.Rotation);
 		}
 
 		#endregion

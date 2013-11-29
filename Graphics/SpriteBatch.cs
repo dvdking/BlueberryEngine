@@ -20,12 +20,15 @@ namespace Blueberry.Graphics
             public int texture;
             public int startIndex;
             public BeginMode mode;
+            public Material material;
         }
 
         int pixelTex = -1;
         int framebuffer = -1;
-        Shader defaultShader;
-        Shader current; 
+
+		Material defaultMaterial;
+		
+		Material current; 
 
         private static SpriteBatch instance;
 
@@ -74,7 +77,12 @@ namespace Blueberry.Graphics
 
             vbuffer = new VertexBuffer(1024);
             Diagnostics.DiagnosticsCenter.Instance.Add(vbuffer);
-            defaultShader = new Shader();
+
+
+
+			Shader defaultShader = new Shader();
+			defaultMaterial = new Material (defaultShader);
+
 
             if (Shader.Version < 3.3f)
             {
@@ -103,14 +111,12 @@ namespace Blueberry.Graphics
             {
                 defaultShader.LoadVertexSource(@"#version 330 core
                                     uniform mat4 WPV;
-                                    uniform int flip;
                                     in vec2 vposition; in vec4 vcolor; in vec2 vtexcoord;
                                     out vec4 fcolor; out vec2 ftexcoord;
                                     void main(void) {
                                     fcolor = vcolor;
                                     ftexcoord = vtexcoord;
                                     gl_Position = WPV * vec4(vposition, 0, 1); 
-                                    gl_Position.y *= flip; 
 									}");
                 defaultShader.LoadFragmentSource(@"#version 330 core
                                           uniform sampler2D colorTexture;
@@ -119,7 +125,7 @@ namespace Blueberry.Graphics
                                           void main(void) { color = texture(colorTexture, ftexcoord) * fcolor; }");
             }
             defaultShader.Link();
-			BindShader(this.defaultShader, "vposition", "vcolor", "vtexcoord", "WPV");
+			BindShader(defaultShader, "vposition", "vcolor", "vtexcoord");
 
 
             int[] p = new int[4];
@@ -152,7 +158,7 @@ namespace Blueberry.Graphics
                 GL.DrawElements(mode, count, DrawElementsType.UnsignedInt, offset * sizeof(float));
         }
 
-		public void BindShader(Shader shader, string positionAttrib, string colorAttrib, string texcoordAttrib, string wpv)
+		public void BindShader(Shader shader, string positionAttrib, string colorAttrib, string texcoordAttrib)
         {
             vbuffer.ClearAttributeDeclarations();
 
@@ -162,14 +168,11 @@ namespace Blueberry.Graphics
 
             vbuffer.Attach(shader);
 
-			wpv_uniform_location = GL.GetUniformLocation(shader.Program, wpv);
-
             shader.Use();
-            current = shader;
         }
-        public void ResetShader()
+		public void ResetShader(Shader shader = null)
         {
-			BindShader(this.defaultShader, "vposition", "vcolor", "vtexcoord", "WPV");
+			BindShader(shader == null ? defaultMaterial.Shader : shader, "vposition", "vcolor", "vtexcoord");
         }
 
         private bool began = false; // if begin was called
@@ -185,26 +188,16 @@ namespace Blueberry.Graphics
             trans = transform;
             vbuffer.ClearBuffer();
         }
-        private bool flip = false;
+
         public void End()
         {
             if (!began) throw new Exception("Call begin first");
 
-            int pr;
-            GL.GetInteger(GetPName.CurrentProgram, out pr);
             if (current == null)
             {
-                current = defaultShader;
-                current.Use();
-            }
-            if (current.Program != pr)
-                current.Use();
+				current = defaultMaterial;
+            }           
 
-			Matrix4 m = trans*proj;
-
-			current.SetUniform(wpv_uniform_location, ref m);
-			current.SetUniform("flip", flip ? -1 : 1);
-            // nothing to do
             if (dipQueue.Count != 0)
             {
 
@@ -216,19 +209,32 @@ namespace Blueberry.Graphics
                 {
                     var b = dipQueue.Dequeue();
                     int count = (dipQueue.Count > 0 ? dipQueue.Peek().startIndex : vbuffer.IndexOffset) - b.startIndex;
+
+                    Material material = b.material;
+                    if (material == null)
+                    {
+                        material = defaultMaterial;
+                    }
+                    if (current != material)
+                    {
+                        ResetShader(current.Shader);
+                    }
+
+                    Matrix4 m = trans * proj;
+                    current.SetParameter("WPV", m);
+                    current.SetShaderUniforms();
+
                     GL.BindTexture(TextureTarget.Texture2D, b.texture);
                     FlushBuffer(b.mode, b.startIndex, count);
                     elementsCounter += count;
                 } while (dipQueue.Count > 0);
                 last = new SpriteBatch.BatchItem() { texture = -1, startIndex = -1, mode = BeginMode.Triangles };
             }
-            flip = false;
             began = false;
         }
 
         public void End(Texture target, bool clear, bool use_back_buffer = false)
         {
-            flip = true;
             if (use_back_buffer)
             {
                 if (clear)
@@ -264,9 +270,9 @@ namespace Blueberry.Graphics
 
         BatchItem last;
 
-        private bool TryPush(int texId, BeginMode mode)
+        private bool TryPush(int texId, Material material, BeginMode mode)
         {
-            if (last.texture != texId || last.mode != mode)
+            if (last.texture != texId || last.mode != mode || last.material != material)
             {
                 last = new BatchItem() { texture = texId, mode = mode, startIndex = vbuffer.IndexOffset };
                 dipQueue.Enqueue(last);
@@ -277,13 +283,13 @@ namespace Blueberry.Graphics
 
         #region DrawTexture
 
-        public unsafe void DrawTexture(Texture texture, float x, float y, float width, float height, RectangleF sourceRectangle, Color4 color,
+        public unsafe void DrawTexture(Texture texture, Material material, float x, float y, float width, float height, RectangleF sourceRectangle, Color4 color,
                                 float rotation = 0.0f, float xOrigin = 0.5f, float yOrigin = 0.5f,
                                 bool flipHorizontally = false, bool flipVertically = false)
         {
             if (texture == null)
                 throw new ArgumentException("texture");
-            TryPush(texture.ID, BeginMode.Triangles);
+            TryPush(texture.ID, material, BeginMode.Triangles);
 
             if (sourceRectangle.IsEmpty)
             {
@@ -356,48 +362,48 @@ namespace Blueberry.Graphics
             #endregion Add vertices
         }
         #region Overloads
-        public void DrawTexture(Texture texture, float x, float y, RectangleF sourceRectangle, Color4 color,
+        public void DrawTexture(Texture texture, Material material, float x, float y, RectangleF sourceRectangle, Color4 color,
                                 float rotation = 0.0f, float xOrigin = 0.5f, float yOrigin = 0.5f, float xScale = 1, float yScale = 1,
                                 bool flipHorizontally = false, bool flipVertically = false)
         {
-            DrawTexture(texture, x, y,
+            DrawTexture(texture,material, x, y,
                 sourceRectangle != RectangleF.Empty ? sourceRectangle.Width * xScale : texture.Size.Width * xScale,
                 sourceRectangle != RectangleF.Empty ? sourceRectangle.Height * yScale : texture.Size.Height * yScale,
                 sourceRectangle, color, rotation, xOrigin, yOrigin, flipHorizontally, flipVertically);
         }
 
-        public void DrawTexture(Texture texture, Vector2 position, RectangleF sourceRectangle, Color4 color,
+        public void DrawTexture(Texture texture, Material material, Vector2 position, RectangleF sourceRectangle, Color4 color,
                                 float rotation, Vector2 origin, Vector2 scale,
                                 bool flipHorizontally = false, bool flipVertically = false)
         {
-            DrawTexture(texture, position.X, position.Y, sourceRectangle, color, rotation, origin.X, origin.Y, scale.X, scale.Y, flipHorizontally, flipVertically);
+            DrawTexture(texture, material, position.X, position.Y, sourceRectangle, color, rotation, origin.X, origin.Y, scale.X, scale.Y, flipHorizontally, flipVertically);
         }
 
-        public void DrawTexture(Texture texture, RectangleF destinationRectangle, RectangleF sourceRectangle, Color4 color,
+        public void DrawTexture(Texture texture, Material material, RectangleF destinationRectangle, RectangleF sourceRectangle, Color4 color,
                                 float rotation, Vector2 origin,
                                 bool flipHorizontally = false, bool flipVertically = false)
         {
-            DrawTexture(texture, destinationRectangle.X, destinationRectangle.Y, destinationRectangle.Width, destinationRectangle.Height, sourceRectangle, color, rotation, origin.X, origin.Y, flipHorizontally, flipVertically);
+            DrawTexture(texture, material, destinationRectangle.X, destinationRectangle.Y, destinationRectangle.Width, destinationRectangle.Height, sourceRectangle, color, rotation, origin.X, origin.Y, flipHorizontally, flipVertically);
         }
 
-        public void DrawTexture(Texture texture, Vector2 position, RectangleF sourceRectangle, Color4 color)
+        public void DrawTexture(Texture texture, Material material, Vector2 position, RectangleF sourceRectangle, Color4 color)
         {
-            DrawTexture(texture, position.X, position.Y, sourceRectangle, color);
+            DrawTexture(texture, material, position.X, position.Y, sourceRectangle, color);
         }
 
-        public void DrawTexture(Texture texture, RectangleF destinationRectangle, RectangleF sourceRectangle, Color4 color)
+        public void DrawTexture(Texture texture, Material material, RectangleF destinationRectangle, RectangleF sourceRectangle, Color4 color)
         {
-            DrawTexture(texture, destinationRectangle.X, destinationRectangle.Y, destinationRectangle.Width, destinationRectangle.Height, sourceRectangle, color);
+            DrawTexture(texture, material, destinationRectangle.X, destinationRectangle.Y, destinationRectangle.Width, destinationRectangle.Height, sourceRectangle, color);
         }
 
-        public void DrawTexture(Texture texture, Vector2 position, Color4 color)
+        public void DrawTexture(Texture texture, Material material, Vector2 position, Color4 color)
         {
-            DrawTexture(texture, position.X, position.Y, RectangleF.Empty, color);
+            DrawTexture(texture, material, position.X, position.Y, RectangleF.Empty, color);
         }
 
-        public void DrawTexture(Texture texture, RectangleF destinationRectangle, Color4 color)
+        public void DrawTexture(Texture texture, Material material, RectangleF destinationRectangle, Color4 color)
         {
-            DrawTexture(texture, destinationRectangle.X, destinationRectangle.Y, destinationRectangle.Width, destinationRectangle.Height, RectangleF.Empty, color);
+            DrawTexture(texture, material, destinationRectangle.X, destinationRectangle.Y, destinationRectangle.Width, destinationRectangle.Height, RectangleF.Empty, color);
         }
         #endregion
         #endregion DrawTexture
@@ -406,7 +412,7 @@ namespace Blueberry.Graphics
         #region DrawLine
         public unsafe void DrawLine(float x1, float y1, float x2, float y2, float thickness, Color4 color)
         {
-            TryPush(this.pixelTex, BeginMode.Triangles);
+            TryPush(this.pixelTex, null, BeginMode.Triangles);
 
             Vector2 dir = new Vector2(x2 - x1, y2 - y1);
             dir.NormalizeFast();
@@ -512,7 +518,7 @@ namespace Blueberry.Graphics
 
         public unsafe void FillPolygon(IEnumerable<Vector2> points, float x, float y, float rotation, float scale, Color4 color)
         {
-            TryPush(this.pixelTex, BeginMode.Triangles);
+            TryPush(this.pixelTex, null, BeginMode.Triangles);
             #region Add vertices
 
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
@@ -550,7 +556,7 @@ namespace Blueberry.Graphics
 
         private unsafe void FillRegularPolygonInternal(float x, float y, int vertices, float xRadius, float yRadius, float rotation, Color4 outerColor, Color4 centralColor)
         {
-            TryPush(this.pixelTex, BeginMode.Triangles);
+            TryPush(this.pixelTex, null, BeginMode.Triangles);
 
             if (vertices < 3 || vertices > 360)
                 throw new ArgumentException("Vertices must be in range from 3 to 360", "vertices");
@@ -636,7 +642,7 @@ namespace Blueberry.Graphics
 
         public unsafe void OutlinePolygon(IEnumerable<Vector2> points, float x, float y, float rotation, float scale, Color4 color)
         {
-            TryPush(this.pixelTex, BeginMode.Triangles);
+            TryPush(this.pixelTex, null, BeginMode.Triangles);
             #region Add vertices
 
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
@@ -671,7 +677,7 @@ namespace Blueberry.Graphics
 
         private unsafe void OutlineRegularPolygonInternal(float x, float y, int vertices, float radiusX, float radiusY, float rotation, Color4 color)
         {
-            TryPush(this.pixelTex, BeginMode.Lines);
+            TryPush(this.pixelTex, null, BeginMode.Lines);
             if (vertices < 3 || vertices > 360)
                 throw new ArgumentException("Vertices must be in range from 3 to 360", "vertices");
 
@@ -708,7 +714,7 @@ namespace Blueberry.Graphics
 
         public unsafe void FillRectangle(float x, float y, float width, float height, Color4 color, float rotation = 0.0f, float xOrigin = 0.0f, float yOrigin = 0.0f)
         {
-            TryPush(this.pixelTex, BeginMode.Triangles);
+            TryPush(this.pixelTex, null, BeginMode.Triangles);
             #region Add vertices
 
             float sin = (float)Math.Sin(rotation);
@@ -783,7 +789,7 @@ namespace Blueberry.Graphics
 
         public unsafe void OutlineRectangle(float x, float y, float width, float height, Color4 color, float thickness, float rotation, float xOrigin, float yOrigin)
         {
-            TryPush(this.pixelTex, BeginMode.Lines);
+            TryPush(this.pixelTex, null, BeginMode.Lines);
 
             #region Add vertices
 
@@ -1194,7 +1200,7 @@ namespace Blueberry.Graphics
         {
             FontGlyph glyph = font.fontData.CharSetMapping[symbol];
             TexturePage sheet = font.fontData.Pages[glyph.page];
-            TryPush(sheet.GLTexID, BeginMode.Triangles);
+            TryPush(sheet.GLTexID, null, BeginMode.Triangles);
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
 
             float tx1 = (float)(glyph.rect.X) / sheet.Width;
@@ -1277,7 +1283,7 @@ namespace Blueberry.Graphics
             FontGlyph glyph = font.fontData.CharSetMapping[c];
             TexturePage sheet = font.fontData.Pages[glyph.page];
 
-            TryPush(sheet.GLTexID, BeginMode.Triangles);
+            TryPush(sheet.GLTexID, null, BeginMode.Triangles);
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
 
             float tx1 = (float)(glyph.rect.X) / sheet.Width;
