@@ -11,6 +11,7 @@ namespace Blueberry
     {
 		private static Dictionary<string, Texture> _textures = new Dictionary<string, Texture>();
 		private static Dictionary<string, BitmapFont> _fonts = new Dictionary<string, BitmapFont>();
+
 		private static List<string> _loadedResources = new List<string>();
 
 		public static Texture GetTexture(string fieldValue)
