@@ -8,7 +8,7 @@
 	</Fonts>
   <Materials basePath="Content//Shaders">
       <Material gameName="bright" vshader="bright.vs" fshader="bright.fs">
-        <Param name="amount" type="float" value="1,6"/>
+        <Param name="amount" type="float" value="2,6"/>
       </Material>
   </Materials>
 </Resources>

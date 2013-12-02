@@ -1,6 +1,9 @@
 #version 330 core
 
 uniform mat4 WPV;
+
+uniform float time;
+
 in vec2 vposition;
 in vec4 vcolor;
 in vec2 vtexcoord;
@@ -12,5 +15,6 @@ void main(void)
 {
 	fcolor = vcolor;
 	ftexcoord = vtexcoord;
-	gl_Position = WPV * vec4(vposition, 0, 1); 
+	vec4 pos = vec4(vposition, 0, 1);
+	gl_Position = WPV * pos;
 }

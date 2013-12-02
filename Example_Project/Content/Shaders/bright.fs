@@ -8,5 +8,16 @@ in vec2 ftexcoord;
 out vec4 color;
 void main(void) 
 {
-	color = texture(colorTexture, ftexcoord) * amount; 
+	vec4 c = texture(colorTexture, ftexcoord);
+
+	float av = (c.r + c.g + c.b) / 3;
+	
+	if(av > 0.2f)
+	{
+		color =  c * amount; 
+	}
+	else
+	{ 
+		color = vec4(av,av,av, 1);
+	}
 }
