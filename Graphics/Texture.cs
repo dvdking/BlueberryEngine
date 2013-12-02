@@ -102,6 +102,9 @@ namespace Blueberry.Graphics
 
         public Size Size { get; protected set; }
 
+        public int Width { get { return Size.Width; } }
+        public int Height { get { return Size.Height; } }
+
         public byte[] Data { get; set; }
 
         public Rectangle Bounds { get { return new Rectangle(Point.Empty, Size); } }
@@ -144,43 +147,24 @@ namespace Blueberry.Graphics
 
         #region Constructors
 
-        public Texture()
-        {
-            int id;
-            // Create handle
-            GL.GenTextures(1, out id);
-            ID = id;
-            GL.BindTexture(TextureTarget.Texture2D, ID);
-
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)DefaultMinFilter);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)DefaultMagFilter);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)DefaultHorizontalWrapFilter);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)DefaultVerticalWrapFilter);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.GenerateMipmap, 0);
-
-            PixelInternalFormat = PixelInternalFormat.Rgba;
-            this.PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat.Bgra;
-
-            BorderColor = DefaultBorderColor;
-        }
-
         public Texture(Size size)
-            : this()
         {
+            InitGLTexture();
             SetSize(size);
         }
 
         public Texture(string filename)
-            : this()
         {
+            InitGLTexture();
             LoadImage(filename);
         }
 
         public Texture(Stream stream)
-            : this()
         {
             if (stream == null)
                 return;
+
+            InitGLTexture();
 
             FromStream(stream);
 
@@ -188,27 +172,56 @@ namespace Blueberry.Graphics
         }
 
         public Texture(Size size, OpenTK.Graphics.OpenGL.PixelFormat format)
-            : this()
         {
+            InitGLTexture();
             PixelFormat = format;
             SetSize(size);
         }
 
         public Texture(OpenTK.Graphics.OpenGL.PixelFormat format)
-            : this()
         {
+            InitGLTexture();
             PixelFormat = format;
+        }
+
+        public Texture(BitmapData dataSource, Size size)
+        {
+            InitGLTexture();
+            LoadFromBitmapdata(dataSource);
+            SetSize(size);            
+        }
+
+        public Texture()
+        {
+            InitGLTexture();
         }
 
         #endregion Constructors
 
         public void Dispose()
         {
-            GL.DeleteTexture(ID);
+            if (ID != -1)
+            {
+                GL.DeleteTexture(ID);
+            }
+            
             ID = -1;
 
             IsDisposed = true;
-            //GDevice.Textures.Remove(this);
+        }
+
+        private void InitGLTexture()
+        {
+            GenTextureId();
+            SetDefaultTextureParams();
+        }
+
+        private void GenTextureId()
+        {
+            int id;
+            // Create handle
+            GL.GenTextures(1, out id);
+            ID = id;
         }
 
         public void GenerateMipmap()
@@ -230,6 +243,22 @@ namespace Blueberry.Graphics
         public Vector2 GetTextureCoordinate(Vector2 point)
         {
             return new Vector2(point.X / (float)Size.Width, point.Y / (float)Size.Height);
+        }
+
+        private void SetDefaultTextureParams()
+        {
+            GL.BindTexture(TextureTarget.Texture2D, ID);
+
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)DefaultMinFilter);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)DefaultMagFilter);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)DefaultHorizontalWrapFilter);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)DefaultVerticalWrapFilter);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.GenerateMipmap, 0);
+
+            PixelInternalFormat = PixelInternalFormat.Rgba;
+            this.PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat.Bgra;
+
+            BorderColor = DefaultBorderColor;
         }
 
         public void MakePixelPerfect()
@@ -276,12 +305,17 @@ namespace Blueberry.Graphics
             BitmapData data = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
                 ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, this.PixelInternalFormat, data.Width, data.Height, 0,
-                this.PixelFormat, PixelType.UnsignedByte, data.Scan0);
+            LoadFromBitmapdata(data);
 
             bitmap.UnlockBits(data);
 
             return true;
+        }
+
+        private void LoadFromBitmapdata(BitmapData data)
+        {
+            GL.TexImage2D(TextureTarget.Texture2D, 0, this.PixelInternalFormat, data.Width, data.Height, 0,
+                this.PixelFormat, PixelType.UnsignedByte, data.Scan0);
         }
 
         public bool LoadImage(byte[] data)

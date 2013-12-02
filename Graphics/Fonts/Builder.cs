@@ -451,9 +451,9 @@ namespace Blueberry.Graphics.Fonts
             }
 
             //create list of texture pages
-            var pages = new List<TexturePage>();
+            var pages = new List<Texture>();
             foreach (var page in bitmapPages)
-                pages.Add(new TexturePage(page.bitmapData));
+                pages.Add(new Texture(page.bitmapData, page.bitmap.Size));
 
             var fontData = new FontData();
             fontData.CharSetMapping = CreateCharGlyphMapping(glyphs);
@@ -611,9 +611,9 @@ namespace Blueberry.Graphics.Fonts
                 pageCount = bitmapPages.Count;
             }
 
-            data.Pages = new TexturePage[pageCount];
+            data.Pages = new Texture[pageCount];
             for (int i = 0; i < pageCount; i++)
-                data.Pages[i] = new TexturePage(bitmapPages[i].bitmapData);
+                data.Pages[i] = new Texture(bitmapPages[i].bitmapData, bitmapPages[i].bitmap.Size);
 
             if (downSampleFactor != 1.0f)
             {

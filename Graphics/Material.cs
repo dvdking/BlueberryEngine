@@ -30,7 +30,9 @@ namespace Blueberry.Graphics
                 case "int":
                     _values[name] = float.Parse(value);
                     break;
-
+                case "texture":
+                    _values[name] = ResourceMgr.GetTexture(value);
+                    break;
                 //todo add moar
                 default:
                     break;
@@ -82,6 +84,10 @@ namespace Blueberry.Graphics
 					Shader.SetUniform (item.Key, ref m);
 					continue;
 				}
+                if (v.GetType() == typeof(Texture))
+                {
+ 
+                }
 			}
 		}
 

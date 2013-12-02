@@ -17,13 +17,13 @@ namespace Blueberry.Graphics
     {
         private struct BatchItem
         {
-            public int texture;
+            public Texture texture;
             public int startIndex;
             public BeginMode mode;
             public Material material;
         }
 
-        int pixelTex = -1;
+        Texture pixelTex = null;
         int framebuffer = -1;
 
 		Material defaultMaterial;
@@ -133,8 +133,8 @@ namespace Blueberry.Graphics
 
             proj = Matrix4.CreateOrthographicOffCenter(p[0], p[2], p[3], p[1], 1, -1);
 
-            GL.GenTextures(1, out pixelTex);
-            GL.BindTexture(TextureTarget.Texture2D, pixelTex);
+            pixelTex = new Texture();
+
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
@@ -145,6 +145,7 @@ namespace Blueberry.Graphics
             float[] pix = new float[] { 1.0f, 1.0f, 1.0f, 1.0f };
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 1, 1, 0,
                PixelFormat.Bgra, PixelType.Float, pix);
+
         }
         public void Dispose()
         {
@@ -225,11 +226,12 @@ namespace Blueberry.Graphics
                     current.SetParameter("WPV", m);
                     current.SetShaderUniforms();
 
-                    GL.BindTexture(TextureTarget.Texture2D, b.texture);
+                    //GL.BindTexture(TextureTarget.Texture2D, b.texture);
+                    b.texture.Bind(0);
                     FlushBuffer(b.mode, b.startIndex, count);
                     elementsCounter += count;
                 } while (dipQueue.Count > 0);
-                last = new SpriteBatch.BatchItem() { texture = -1, startIndex = -1, mode = BeginMode.Triangles };
+                last = new SpriteBatch.BatchItem() { texture = null, startIndex = -1, mode = BeginMode.Triangles };
             }
             began = false;
         }
@@ -271,11 +273,11 @@ namespace Blueberry.Graphics
 
         BatchItem last;
 
-        private bool TryPush(int texId, Material material, BeginMode mode)
+        private bool TryPush(Texture tex, Material material, BeginMode mode)
         {
-            if (last.texture != texId || last.mode != mode || last.material != material)
+            if (last.texture != tex || last.mode != mode || last.material != material)
             {
-                last = new BatchItem() { texture = texId, mode = mode, startIndex = vbuffer.IndexOffset, material = material };
+                last = new BatchItem() { texture = tex, mode = mode, startIndex = vbuffer.IndexOffset, material = material };
                 dipQueue.Enqueue(last);
                 return true;
             }
@@ -290,7 +292,7 @@ namespace Blueberry.Graphics
         {
             if (texture == null)
                 throw new ArgumentException("texture");
-            TryPush(texture.ID, material, BeginMode.Triangles);
+            TryPush(texture, material, BeginMode.Triangles);
 
             if (sourceRectangle.IsEmpty)
             {
@@ -1200,8 +1202,8 @@ namespace Blueberry.Graphics
             bool flipHorizontally = false, bool flipVertically = false)
         {
             FontGlyph glyph = font.fontData.CharSetMapping[symbol];
-            TexturePage sheet = font.fontData.Pages[glyph.page];
-            TryPush(sheet.GLTexID, null, BeginMode.Triangles);
+            Texture sheet = font.fontData.Pages[glyph.page];
+            TryPush(sheet, null, BeginMode.Triangles);
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
 
             float tx1 = (float)(glyph.rect.X) / sheet.Width;
@@ -1282,9 +1284,9 @@ namespace Blueberry.Graphics
         private unsafe void RenderGlyph(BitmapFont font, char c, float x, float y, float xOffset, float yOffset, Color4 color, float rotation, float scale, bool flipHorizontally, bool flipVertically)
         {
             FontGlyph glyph = font.fontData.CharSetMapping[c];
-            TexturePage sheet = font.fontData.Pages[glyph.page];
+            Texture sheet = font.fontData.Pages[glyph.page];
 
-            TryPush(sheet.GLTexID, null, BeginMode.Triangles);
+            TryPush(sheet, null, BeginMode.Triangles);
             int offset = vbuffer.VertexOffset / vbuffer.Stride;
 
             float tx1 = (float)(glyph.rect.X) / sheet.Width;

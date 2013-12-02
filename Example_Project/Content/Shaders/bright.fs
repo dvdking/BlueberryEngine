@@ -18,6 +18,6 @@ void main(void)
 	}
 	else
 	{ 
-		color = vec4(av,av,av, 1);
+		color = vec4(c.r/amount, c.g/amount, c.b*amount, 1.0f);
 	}
 }

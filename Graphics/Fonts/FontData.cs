@@ -13,7 +13,7 @@ namespace Blueberry.Graphics.Fonts
         public Dictionary<String, int> KerningPairs;
 
         /// <summary>List of texture pages</summary>
-        public TexturePage[] Pages;
+        public Texture[] Pages;
 
         /// <summary>Mapping from character to glyph index</summary>
         public Dictionary<char, FontGlyph> CharSetMapping;
