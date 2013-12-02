@@ -52,7 +52,11 @@
       <Name>BlueberryEngine</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Content\Textures\LightTex.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <ItemGroup>
     <None Include="Content\Prefabs.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

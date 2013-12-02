@@ -2,6 +2,7 @@
 	<Textures basePath="Content//Textures">
 		<Texture gameName="SomeGuy" fileName="SomeGuy.png"/>
 		<Texture gameName="SomeBadGuy" fileName="SomeBadGuy.png"/>
+    <Texture gameName="LightTex" fileName="LightTex.png"/>
 	</Textures>
 	<Fonts basePath="Content//Fonts">
 		<Font gameName="monofur_16" fileName="monofur.ttf" size="76"/>
@@ -9,6 +10,7 @@
   <Materials basePath="Content//Shaders">
       <Material gameName="bright" vshader="bright.vs" fshader="bright.fs">
         <Param name="amount" type="float" value="2,6"/>
+        <Param name="LightTex" type="texture" value="LightTex"/>
       </Material>
   </Materials>
 </Resources>

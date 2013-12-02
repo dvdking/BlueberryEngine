@@ -1,5 +1,6 @@
 #version 330 core
 uniform sampler2D colorTexture;
+uniform sampler2D LightTex;
 uniform float amount;
 
 in vec4 fcolor;
@@ -9,6 +10,7 @@ out vec4 color;
 void main(void) 
 {
 	vec4 c = texture(colorTexture, ftexcoord);
+	vec4 c2 = texture(LightTex, ftexcoord);
 
 	float av = (c.r + c.g + c.b) / 3;
 	
@@ -18,6 +20,6 @@ void main(void)
 	}
 	else
 	{ 
-		color = vec4(c.r/amount, c.g/amount, c.b*amount, 1.0f);
+		color = (c2*0.8f + c*0.2f);
 	}
 }

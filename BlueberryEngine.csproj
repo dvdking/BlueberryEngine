@@ -153,7 +153,6 @@
     <Compile Include="Graphics\Fonts\FontGlyph.cs" />
     <Compile Include="Graphics\Fonts\FontRenderOptions.cs" />
     <Compile Include="Graphics\Fonts\TextNodeList.cs" />
-    <Compile Include="Graphics\Fonts\TexturePage.cs" />
     <Compile Include="Graphics\Shader.cs" />
     <Compile Include="Graphics\VertexBuffer.cs" />
     <Compile Include="Graphics\SpriteBatch.cs" />

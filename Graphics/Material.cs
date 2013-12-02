@@ -46,9 +46,12 @@ namespace Blueberry.Graphics
 
 		internal void SetShaderUniforms()
 		{
+            int textureUnit = 1;
+
 			foreach (var item in _values) 
 			{
 				//todo probably there is a better solution
+                //probably not...
                 object v = item.Value;
 				if (v.GetType() == typeof(int)) 
 				{
@@ -86,7 +89,9 @@ namespace Blueberry.Graphics
 				}
                 if (v.GetType() == typeof(Texture))
                 {
- 
+                    Texture t = (Texture)v;
+                    t.Bind(textureUnit);
+                    Shader.SetUniform(item.Key, textureUnit++);
                 }
 			}
 		}
