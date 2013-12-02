@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using OpenTK;
 using System.Collections.Generic;
 
@@ -17,7 +18,25 @@ namespace Blueberry.Graphics
 		{
 			Shader = shader;
 		}
-		
+
+
+        public void SetParameter(string name, string type, string value)
+        {
+            switch (type)
+            {
+                case "float":
+                    _values[name] = float.Parse(value);
+                    break;
+                case "int":
+                    _values[name] = float.Parse(value);
+                    break;
+
+                //todo add moar
+                default:
+                    break;
+            }
+        }
+
 		public void SetParameter(string name, object value)
 		{
 			_values [name] = value;
@@ -64,42 +83,18 @@ namespace Blueberry.Graphics
 					continue;
 				}
 			}
-			_values.Clear ();
 		}
 
+        public Material Clone()
+        {
+            var m = new Material(Shader);
 
+            m._values = new Dictionary<string, object>(_values);
+            m.Name = Name;
 
-		public void SetParameter(string  name, int value)
-		{
-			Shader.SetUniform (name, value);
-		}
+            return m;
 
-		public void SetParameter(string name, float value)
-		{
-			Shader.SetUniform (name, value);
-		}
-
-		public void SetParameter(string name, ref  Vector2 value)
-		{
-			Shader.SetUniform (name, ref value);
-		}
-
-		public void SetParameter(string name, ref  Vector3 value)
-		{
-			Shader.SetUniform (name, ref value);
-		}
-
-		public void SetParameter(string name, ref  Vector4 value)
-		{
-			Shader.SetUniform (name, ref value);
-		}
-
-		public void SetParameter(string name, ref Matrix4 value)
-		{
-			Shader.SetUniform (name, ref value);
-		}
-
-
+        }
 	}
 }
 

@@ -217,6 +217,7 @@ namespace Blueberry.Graphics
                     }
                     if (current != material)
                     {
+                        current = material;
                         ResetShader(current.Shader);
                     }
 
@@ -274,7 +275,7 @@ namespace Blueberry.Graphics
         {
             if (last.texture != texId || last.mode != mode || last.material != material)
             {
-                last = new BatchItem() { texture = texId, mode = mode, startIndex = vbuffer.IndexOffset };
+                last = new BatchItem() { texture = texId, mode = mode, startIndex = vbuffer.IndexOffset, material = material };
                 dipQueue.Enqueue(last);
                 return true;
             }

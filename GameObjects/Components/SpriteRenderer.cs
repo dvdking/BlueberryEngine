@@ -11,6 +11,7 @@ namespace Blueberry
     {
 		public Color4 Color = Color4.White;
 		public Texture Texture;
+        public Material Material;
 
         public SpriteRenderer()
         {
@@ -21,7 +22,7 @@ namespace Blueberry
 		public void Draw(float dt)
 		{
 			var t = Owner.Transform;
-			SpriteBatch.Please.DrawTexture(Texture, null, t.Position.X, t.Position.Y, t.Size.Width, t.Size.Height, Texture.Bounds, Color, t.Rotation);
+			SpriteBatch.Please.DrawTexture(Texture, Material, t.Position.X, t.Position.Y, t.Size.Width, t.Size.Height, Texture.Bounds, Color, t.Rotation);
 		}
 
 		#endregion

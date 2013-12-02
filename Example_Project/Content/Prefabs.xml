@@ -5,7 +5,7 @@
 	<Prefab name="Player">
 		<Component name="Transform" Width="64" Height="64"/>
 		<Component name="PlayerControl" Speed="250"/>
-		<Component name="SpriteRenderer" Texture="SomeGuy"/>
+		<Component name="SpriteRenderer" Texture="SomeGuy" Material="bright"/>
 		<Component name="CircleCollider" Radius="32"/>
 	</Prefab>
 	<Prefab name="Enemy">

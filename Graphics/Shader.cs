@@ -194,24 +194,26 @@ namespace Blueberry.Graphics
         public void LoadVertexFile(string filename)
         {
             if (_vertex == 0)
-
                 _vertex = GL.CreateShader(ShaderType.VertexShader);
 
-            loadShader(File.ReadAllText(filename), ref _vertex);
+            string shaderText = File.ReadAllText(filename);
+            loadShader(shaderText, ref _vertex);
         }
 
         public void LoadGeometryFile(string filename)
         {
             if (_geometry == 0)
                 _geometry = GL.CreateShader(ShaderType.GeometryShader);
-            loadShader(File.ReadAllText(filename), ref _geometry);
+            string shaderText = File.ReadAllText(filename);
+            loadShader(shaderText, ref _geometry);
         }
 
         public void LoadFragmentFile(string filename)
         {
             if (_fragment == 0)
                 _fragment = GL.CreateShader(ShaderType.FragmentShader);
-            loadShader(File.ReadAllText(filename), ref _fragment);
+            string shaderText = File.ReadAllText(filename);
+            loadShader(shaderText, ref _fragment);
         }
 
         public void LoadVertexSource(string source)

@@ -110,17 +110,24 @@ namespace Blueberry.GameObjects
 			}
 			if (info.FieldType == typeof(GameObject))
 			{
-					this[fieldName] = Owner.GameObjectManager.GetByName(fieldValue);
-					return true;
+				this[fieldName] = Owner.GameObjectManager.GetByName(fieldValue);
+				return true;
 			}
 			if (info.FieldType == typeof(Texture))
 			{
 				this[fieldName] = ResourceMgr.GetTexture(fieldValue);
+                return true;
 			}
 			if (info.FieldType == typeof(BitmapFont))
 			{
 				this[fieldName] = ResourceMgr.GetFont(fieldValue);
+                return true;
 			}
+            if (info.FieldType == typeof(Material))
+            {
+                this[fieldName] = ResourceMgr.GetMaterial(fieldValue);
+                return true;
+            }
 
 			return false;
 		}
